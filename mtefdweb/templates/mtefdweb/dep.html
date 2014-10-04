@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{% only_in "en" %}
+
+<p class="message info">Here's the latest draft of the DEP. Revision history is available <a href="https://github.com/aaugustin/mtefd/commits/master/multiple-template-engines.rst">on GitHub</a>.</p>
+
+{{ dep_html|safe }}
+
+{% endblock %}

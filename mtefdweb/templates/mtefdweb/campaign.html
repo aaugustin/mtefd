@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% load static from staticfiles %}
+
+{% block content %}
+
+{% only_in "en" %}
+
+<p class="message info">Here's the story of the crowdfunding campaign, as published originally <a href="https://www.indiegogo.com/projects/multiple-template-engines-for-django/x/8700313">on Indiegogo</a>.</p>
+
+<h1>Multiple Template Engines for Django</h1>
+
+<img src="{% static 'img/2014-09-21-multiple-template-engines-poster-rect.png' %}" style="display: block; margin: 0 auto; max-width: 620px; max-height: 414px; width: 100%;">
+
+<p style="font-size: 160%;">Provide first-class support for third-party template engines in Django and native Jinja2 integration</p>
+
+<h2>The project</h2>
+<p>The <a href="https://docs.djangoproject.com/en/stable/topics/templates/">Django Template Language</a> has a long history of receiving criticism for its design and its performance. During the last few years, the idea of replacing it with <a href="http://jinja.pocoo.org/">Jinja2</a> has come up regularly.</p>
+<p>While the two languages have superficially similar syntax, they're quite different. Forcing a transition upon the entire Django ecosystem isn't realistic.</p>
+<p>I'm proposing to solve this problem in Django 1.8 by:</p>
+<ul>
+<li>supporting some alternate template engines such as Jinja2 out of the box</li>
+<li>keeping the Django Template Language as the default template engine</li>
+<li>defining a stable API for integrating third-party template engines</li>
+<li>supporting multiple template engines within the same Django project</li>
+</ul>
+<p>This will provide a standardized way to use Jinja2 templates in Django projects and to ship Jinja2 templates with pluggable apps.</p>
+<p>Furthermore this will pave the path to template-based form rendering.</p>
+<p>I'm planning to split the project in three parts. Steps 1 and 3 are the core of the project. Step 2 isn't strictly required but it would allow for a more consistent implementation of step 3.</p>
+<p>Each step should require about forty hours of work if everything goes well — which isn't the most likely outcome, but I'm prepared to take the time this project will require :-)</p>
+<h3>Step 1: write a Django Enhancement Proposal (DEP)</h3>
+<p>I'll start by researching the subject and designing the implementation. I've already performed preliminary analysis and sketched APIs in order to validate my ideas before starting this campaign. But I still have many decisions to make, details to check, and blanks to fill.</p>
+<p>The output of this step will be a DEP that:</p>
+<ul>
+<li>expands the rationale summarized above</li>
+<li>arguments design decisions</li>
+<li>outlines an implementation plan</li>
+<li>provides guidelines for third-party template engines</li>
+<li>answers frequently asked questions</li>
+<li>analyzes the features of Django templates</li>
+<li>surveys other Python template engines</li>
+</ul>
+<p>I will discuss and improve the DEP until consensus is reached.</p>
+<h3>Step 2: refactor Django templates as a library (stretch goal)</h3>
+<p>Unlike other Python template engines, Django templates are configured with global settings. That makes them hard to test or use as a library outside a Django project. This issue is discussed in <a href="https://code.djangoproject.com/ticket/17093">ticket #17093</a> and in <a href="https://groups.google.com/d/msg/django-developers/WT1cOvpPbSM/lYRtJ9G0Av4J">a mailing-list thread</a>. Unfortunately, Christopher Medrela's patch wasn't merged and it doesn't apply any more.</p>
+<p>My project is a good opportunity to complete this refactoring. It will bring Django templates up to par with other engines, make future maintenance easier, and is expected to provide a more robust base for implementing the DEP.</p>
+<p><i>I will tackle this step if the campaign raises at least €6000.</i></p>
+<h3>Step 3: implement the DEP</h3>
+<p>You know the drill: code, tests, docs ;-)</p>
+<p>That's nothing fancy but good software takes time, especially under strong backward-compatibility requirements.</p>
+<h3>Communication</h3>
+<p>Throughout the project, I will post weekly or fortnightly updates on the <a href="https://groups.google.com/forum/#!forum/django-developers">django-developers</a> mailing-list and on the project's website. In each message, I will:</p>
+<ul>
+<li>describe what I've been doing</li>
+<li>explain what problems I encountered, if any, and what solutions I chose</li>
+<li>announce what I'm planning to do next</li>
+<li>talk about open questions and ask for feedback</li>
+</ul>
+<h2>About me</h2>
+<p>I've been a Django core developer since 2011.</p>
+<p>With more than 50 commits touching <tt>django.template</tt> or <tt>django.templatetags</tt>, I know Django's template engine very well.</p>
+<p>I have contributed several large features to Django:</p>
+<ul>
+<li>timezone-aware handling of datetimes (1.4)</li>
+<li>support for Python 3 (1.5) with the help of other committers</li>
+<li>overhaul of transaction management (1.6)</li>
+<li>app-loading refactor (1.7)</li>
+</ul>
+<p>I haven't started working on a feature for Django 1.8 yet. If this campaign succeeds, it will be Jinja2!</p>
+<h2>Why Indiegogo?</h2>
+<p>An interesting question — after all I've been doing a lot of work for free during the last four years.</p>
+<p>For each of the features listed above, I had a strong motivation. I worked on timezones to prove I could join the core team. I worked on Python 3 because I couldn't stand Python 2 any more. I worked on transactions and app-loading because my professional projects had hit Django's limitations in these areas.</p>
+<p>Django templates are a different case. I'm happy with them for simple projects. They work quite well considering how they're designed and implemented. If I need something else, I know what my options are.</p>
+<p>I'd like to improve Django in this area because I'm hearing demand from the community. However I'm not ready to dedicate so much of my free time without compensation for my family. Your gifts will allow me to give this project the attention it deserves and motivate me to produce the very best work I can manage.</p>
+<p>If the campaign raises more than €8000 (which both the <a href="https://www.kickstarter.com/projects/andrewgodwin/schema-migrations-for-django">Migrations</a> and <a href="https://www.kickstarter.com/projects/mjtamlyn/improved-postgresql-support-in-django">PostgreSQL</a> campaigns did) I will give back 20% of the proceeds above this limit to the Django Software Foundation and 5% to the Ada Initiative.</p>
+<p><i>This campaign is my own. It isn't an official Django one. However, both the Django Software Foundation and the Django core team have given their approval.</i></p>
+<h2>Risks</h2>
+<p>Even the most carefully planned software project carries some risks. Unexpected edge cases can appear. Seemingly good design can be hard to implement cleanly.</p>
+<p>However, considering my past experience with projects of similar size, I'm confident that I can resolve or sidestep such issues. Here are two examples:</p>
+<ul>
+<li>When I started working on transactions, I didn't realize that my plan would add savepoints around every ORM operation, throwing off `assertNumQueries` in tests. After a long debate, I solved the problem by adding a keyword argument to the `atomic` context manager.</li>
+<li>Near the end of my implementation of time zone support, I discovered two problems in the admin, one with date hierarchies, the other and datetime widgets. Since I wasn't able to fix them, I documented them as known limitations in Django 1.4. Eventually they were fixed in Django 1.6.</li>
+</ul>
+<p>There's also a small risk that the Django core team or technical board will object to my design or my implementation. However, I have already obtained positive feedback on the general design from several core developers and most members of the technical board. I have also committed more backwards-incompatible and more complicated changes to Django before.</p>
+<h2>How to help</h2>
+<p>If you like this project, even if you can't contribute directly, there are many ways you can help!</p>
+<ul>
+<li>Subscribe to the <a href="https://groups.google.com/forum/#!forum/django-developers">django-developers mailing list</a> and participate in design discussions</li>
+<li>Try the new features, once they make it into Django's developement version</li>
+<li>Write a backend for your favorite template engine and validate the APIs</li>
+<li>Right now, talk about the project! I'm not very good at this whole social media thing :-)</li>
+</ul>
+<p><b>Thank you!</b></p>
+
+{% endblock %}
