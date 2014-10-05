@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block extrahead %}
+
+<style>
+.errorlist {
+    color: #c00;
+    font-size: 12px;
+    padding: 0;
+    margin: 0;
+    list-style-type: none;
+}
+.form {
+    min-width: 80%;
+}
+.form th, .form td {
+    vertical-align: top;
+    padding-bottom: 1em;
+}
+.form th {
+    padding-right: 1em;
+    text-align: right;
+    width: 25%;
+}
+.form .helptext {
+    color: #999;
+    font-size: 12px;
+    font-style: italic;
+    margin: 0;
+}
+.form input, .form textarea {
+    width: 100%;
+}
+.submit {
+    text-align: center;
+}
+</style>
+
+{% endblock %}
+
+{% block content %}
+
+{% include 'mtefdweb/_menu.html' %}
+
+<h1>Edit your funder profile</h1>
+
+{% for message in messages %}
+<p class="message {{ message.tags }}">{{ message }}</p>
+{% endfor %}
+
+<form action="{% url 'mtefd-funder-info' token=funder.token %}" method="POST">
+{% csrf_token %}
+<table class="form">
+<tr><th>Level:</th><td>{{ funder.get_perk_display }}</td></tr>
+{{ form.as_table }}
+<tr><td></td><td><input type="submit" value="Update my profile"></td></tr>
+</table>
+</form>
+
+{% endblock %}
