@@ -59,6 +59,116 @@ engines and to provide built-in support for two of them: `template strings`_
 and Jinja2_.
 
 
+Design decisions
+================
+
+Built-in engines
+----------------
+
+Supporting pluggable engines is a strategy that has served Django well in many
+areas. It's more valuable in the long term than just merging a mature Django -
+Jinja2 adapter.
+
+The Django Template Language must remain the default to avoid creating a huge
+backwards incompatibility without an acceptable upgrade path for the ecosystem
+at large.
+
+Support for template strings is built-in to validate a minimal implementation.
+This is akin to the local memory cache backend or, to a lesser extent, to the
+SQLite database backend.
+
+Support for Jinja2 is built-in because it appears to be the most widely used
+alternative. This DEP will be updated if evidence appears that another engine
+is more popular.
+
+Support for other template engines is expected to be provided by third-party
+libraries. The reasons for doing so are exactly the same as for the cache and
+database engines.
+
+Engine selection
+----------------
+
+Developers must be able to select the most appropriate engine for each page
+e.g. use Jinja2 only for a few performance-intensive pages. This provides a
+better migration story for converting a website from one engine to another
+too. That's why Django has to support several template engines in the same
+project.
+
+If several template engines are configured, when tasked with rendering a given
+template, Django must choose one. There are at least four ways to do this.
+
+1. Explicitly selecting an engine, for example::
+
+       html = render_to_string('index.html', context, engine='jinja2')
+
+   Many APIs would work here, but all would add some boilerplate.
+
+2. Explicitly tagging templates, for example::
+
+       {# language: jinja2 #}
+
+   This would work like charset declaration in Python modules. It's marginally
+   less ugly than option 1.
+
+   Unfortunately, due to the way template engines are implemented, Django
+   would have to locate the template, figure out which engine it uses, and
+   then the engine would locate the template again, load it and render it.
+   That would restrict engines to selection mechanisms that Django implements.
+   That would also introduce an unhealthy amount of duplication and possibly
+   some bugs.
+
+3. Convention: the file extension would define which engine to use. That's a
+   pragmatic solution. Ruby on Rails would likely take this route.
+
+   However, since the Django ecosystem favors configuration over convention,
+   most Django - Jinja2 bridges provide a setting that controls which
+   templates must be rendered with Jinja2. That setting defines a regular
+   expression against which template names are tested.
+
+   If extensions are configurable, there's a risk that pluggable apps will end
+   up with incompatible requirements. For example, if app A wants .html files
+   to be rendered with the DTL and app B wants them to be rendered with
+   Jinja2, it becomes impossible to use both apps in the same project. A
+   configuration mechanism that handles such cases would be too complex.
+
+   If extensions are enforced, some users will be have to use file names that
+   they don't like or that their editors don't handle well. The potential for
+   bikeshedding makes this an unattractive option. Finally template loaders
+   that don't store templates in the filesystem may use identifiers without a
+   file extension.
+
+4. Trial and error: in order to load a template, Django would iterate over the
+   list of configured template engines and attempt to locate the template with
+   each of them until one succeeds.
+
+   Since there's no way to ascertain whether a particular file is intended for
+   a given template engine, engines that load templates from the filesystem
+   should search for templates in distinct locations. Each engine must have
+   its own list of directories to load templates from and these lists mustn't
+   overlap.
+
+   As a consequence, a convention would still be necessary to give each engine
+   its own subdirectory within installed applications to load templates from.
+   This should simply be the engine's name e.g. ``/jinja2/`` for Jinja2. In
+   order to preserve backwards-compatibility, it would remain ``/templates/``
+   for Django templates. This convention has a lower impact on users because
+   editors don't care about directory names the same way they do about file
+   extensions.
+
+   The intent of this design is that only one engine will find a template with
+   a given identifier and that the order of template engines won't matter.
+   That said, nothing prevents users from relying on the order of template
+   engines to implement fallback schemes.
+
+Option 4 appears to provide the best compromise. It isn't perfect but it beats
+the alternatives and it doesn't have any drawbacks for daily use. It creates a
+healthy separation between templates designed for each engine.
+
+In addition, option 1 should be provided because it lets users implement their
+own scheme if option 4 doesn't cater for their use case and it won't add much
+complexity to the implementation.
+
+
 Appendix: the Django Template Language
 ======================================
 
