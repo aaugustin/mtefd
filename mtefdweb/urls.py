@@ -5,6 +5,7 @@ from . import views
 urlpatterns = [
     url(r'^campaign/$', views.campaign, name='mtefd-campaign'),
     url(r'^dep/$', views.dep, name='mtefd-dep'),
+    url(r'^funders/', views.funders, name='mtefd-funders'),
     url(r'^funder/(?P<token>\w{12})/', views.FunderInfo.as_view(),
         name='mtefd-funder-info'),
     url(r'^$', views.Updates.as_view(), name='mtefd-updates'),

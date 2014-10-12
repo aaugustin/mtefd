@@ -29,17 +29,24 @@ class Funder(models.Model):
     email = models.CharField(max_length=100)
 
     perk = models.PositiveSmallIntegerField(choices=PERK_CHOICES)
-    appearance = models.CharField(max_length=1, choices=APPEARANCE_CHOICES)
+    appearance = models.CharField(
+        max_length=1, choices=APPEARANCE_CHOICES,
+        help_text="Visible: your name and your contribution are shown. "
+                  "Identity-Only: your name is shown in \"special thanks\". "
+                  "Anonymous: your contribution is shown as Anonymous.")
 
     logo = models.URLField(
         max_length=250, blank=True,
-        help_text="URL of your logo (silver and above)")
+        help_text="URL of your logo (silver and above). "
+                  "Leave empty if you don't want a logo.")
     link = models.URLField(
         max_length=250, blank=True,
-        help_text="URL of your website (silver and above)")
+        help_text="URL of your website (silver and above). "
+                  "Leave empty if you don't want a link.")
     why = models.TextField(
         max_length=250, blank=True,
-        help_text="Reason why you support the project (gold and above)")
+        help_text="Reason why you support the project (gold and above). "
+                  "Leave empty if you don't want to give a reason.")
 
     token = models.CharField(max_length=12, editable=False)
 
@@ -53,6 +60,10 @@ class Funder(models.Model):
 
     def get_absolute_url(self):
         return reverse('mtefd-funder-info', kwargs={'token': self.token})
+
+    @property
+    def display_name(self):
+        return "Anonymous" if self.appearance == 'A' else self.name
 
 
 class Update(models.Model):

@@ -32,6 +32,16 @@ def dep(request):
     return render(request, 'mtefdweb/dep.html', {'dep_html': dep_html})
 
 
+def funders(request):
+    funders = Funder.objects.order_by('-perk', '?')
+    return render(request, 'mtefdweb/funders.html', {
+        'sponsors': funders.exclude(appearance='I').filter(perk__gte=3),
+        'funders2': funders.exclude(appearance='I').filter(perk=2),
+        'funders1': funders.exclude(appearance='I').filter(perk=1),
+        'fundersx': funders.filter(appearance='I', perk__gte=1),
+    })
+
+
 class FunderInfo(UpdateView):
     model = Funder
     fields = ['name', 'email', 'appearance', 'logo', 'link', 'why']
