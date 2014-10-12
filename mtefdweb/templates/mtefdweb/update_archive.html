@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Updates - Multiple Template Engines{% endblock %}
+
+{% block extrahead %}
+
+<style>
+h2 { position: relative; }
+h2 a { display: none; }
+h2:hover a { display: block; position: absolute; right: 0; top: 0; text-decoration: none; }
+h2:hover a:link, h2:hover a:visited { color: #68a; }
+</style>
+
+{% endblock %}
+
+{% block content %}
+
+{% include 'mtefdweb/_menu.html' %}
+
+<h1>Multiple Template Engines for Django</h1>
+
+{% for update in object_list %}
+<h2 id="{{ update.date.isoformat }}">
+{{ update.date }} - {{ update.title }}
+<a href="#{{ update.date.isoformat }}">¶</a>
+</h2>
+{{ update.html|safe }}
+{% empty %}
+<p>No updates available yet.</p>
+{% endfor %}
+
+{% endblock %}

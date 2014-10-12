@@ -3,11 +3,12 @@ import re
 
 from django.contrib import messages
 from django.shortcuts import render
+from django.views.generic.dates import ArchiveIndexView
 from django.views.generic.edit import UpdateView
 
 from docutils.core import publish_parts
 
-from .models import Funder
+from .models import Funder, Update
 
 
 def campaign(request):
@@ -44,3 +45,9 @@ class FunderInfo(UpdateView):
     def form_invalid(self, form):
         messages.warning(self.request, "Please fix errors below.")
         return super(FunderInfo, self).form_invalid(form)
+
+
+class Updates(ArchiveIndexView):
+    model = Update
+    allow_empty = True
+    date_field = 'date'

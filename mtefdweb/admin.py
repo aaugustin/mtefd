@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import Funder
+from .models import Funder, Update
 
 
 class FunderAdmin(admin.ModelAdmin):
@@ -15,3 +15,12 @@ class FunderAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Funder, FunderAdmin)
+
+
+class UpdateAdmin(admin.ModelAdmin):
+    date_hierarchy = 'date'
+    list_display = ['title', 'date']
+    search_fields = ['title', 'body']
+
+
+admin.site.register(Update, UpdateAdmin)
