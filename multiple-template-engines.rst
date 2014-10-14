@@ -40,10 +40,10 @@ suffer from the cost of interpreting templates in Python. Attempts to optimize
 rendering performance  `have failed`_.
 
 PyPy improves rendering speed a lot. However, in 2014, PyPy isn't ready for
-being recommended as Django's default deployment platform. Support for Python
-3 is still experimental. PyPy is still a second-class citizen of the Python
-ecosystem. For instance, well-known Linux distributions don't ship a WSGI
-server running on PyPy out of the box.
+being recommended as Django's default deployment platform. Its support for
+Python 3 is still experimental. PyPy is still a second-class citizen of the
+Python ecosystem. For instance, well-known Linux distributions don't ship a
+WSGI server running on PyPy out of the box.
 
 For at least these two reasons, Django users are increasingly turning to
 alternate template engines. Jinja2 is the most popular choice thanks to its
