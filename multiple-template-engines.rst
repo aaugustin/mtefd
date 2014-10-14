@@ -439,13 +439,67 @@ Will the Django Template Langage be deprecated?
 
 No, there is no plan to deprecate it at this time.
 
+How does this account for differences in APIs?
+----------------------------------------------
+
+As shown above, most Python templates engines support the following pattern::
+
+    loader = TemplateLoader(**CONFIG)
+    template = loader.load(NAME)
+    html = template.render(**CONTEXT)
+
+This basic API serves as a common denominator for all engines. Then it's up to
+each engine to provide additional APIs, mainly as ``TemplateLoader`` options.
+
+This document describes other APIs but they aren't mandatory. If they don't
+make sense for a particular engine, they can be stubbed.
+
+Isn't this going to fragment the ecosystem of pluggable apps?
+-------------------------------------------------------------
+
+First, there's a debate about the usefulness of shipping user-facing templates
+in pluggable apps. Templates must be customized to fit the website's design,
+usually by inheriting a base template. That's why many pluggable apps don't
+ship templates and document which templates the developer must create instead.
+In that case, the developer can use their favorite template engine.
+
+If a pluggable app ships standalone templates, then which template engine
+they're written for doesn't matter. The author must document which template
+engine it uses and the developer must ensure their project meets this
+requirement.
+
+Pluggable apps that provide template filters or tags should consider adding
+equivalent Python functions to their public APIs for interoperability with any
+template engine.
+
+Is it possible to use Django template filters or tags with other engines?
+-------------------------------------------------------------------------
+
+This project doesn't aim at creating Django-flavored versions of various
+Python template engines. It aims at building a foundation upon which every
+developer can build the template engine they need if it doesn't exist yet.
+
+This idea can be implemented but it belongs to a third-party module.
+
+What about template loaders and context processors?
+---------------------------------------------------
+
+Likewise, these are specific features of the Django template engine. Other
+engines should provide their own APIs for loading templates and for adding
+common context to all templates.
+
+Can Django support my favorite frontend template engine?
+--------------------------------------------------------
+
+Nice try ;-) This is out of scope for this project.
+
 
 Acknowledgements
 ================
 
-Thanks Loic Bistuer, Tim Graham, Jannis Leidel, Carl Meyer, Baptiste Mispelon
-and Daniele Procida for commenting drafts of this document. Many good ideas
-are theirs.
+Thanks Loic Bistuer, Tim Graham, Jannis Leidel, Carl Meyer, Baptiste Mispelon,
+Daniele Procida and Josh Smeaton for commenting drafts of this document. Many
+good ideas are theirs.
 
 
 Copyright
