@@ -26,8 +26,14 @@ class Funder(models.Model):
         'Diamond sponsor',
     ]))
 
-    name = models.CharField(max_length=100)
-    email = models.CharField(max_length=100)
+    name = models.CharField(
+        max_length=100,
+        help_text="Your name appears on the funders page "
+                  "unless you set your Appearance to Anonymous.")
+    email = models.CharField(
+        max_length=100,
+        help_text="Your email address is your identifier on this website. "
+                  "It will never be displayed or shared with anyone.")
 
     perk = models.PositiveSmallIntegerField(choices=PERK_CHOICES)
     appearance = models.CharField(
