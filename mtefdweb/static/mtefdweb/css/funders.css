@@ -1,0 +1,42 @@
+/* space out headers a bit */
+
+h2 { clear: left; padding-top: 2em;}
+h1 + h2 { padding-top: 0;}
+
+/* outer layout */
+
+.perk7, .perk6, .perk5 { overflow: auto; height: 10em; }
+.perk7, .perk6 { margin: 0 auto 3%; }
+.perk5, .perk4, .perk3 { margin: 0 1.5% 3% 1.5%; }
+@media all and (min-width: 32em) {
+    .perk5, .perk4, .perk3 { float: left; width: 41%; }
+}
+@media all and (min-width: 44em) {
+    .perk3 { width: 24%; }
+}
+
+/* backgrounds */
+
+/* Background patterns from subtlepatterns.com */
+.perk7 { background: url('../img/diamond.png'); background-size: 33px 25px; }
+.perk6 { background: url('../img/brushed.png'); background-size: 113.5px 113.5px; }
+.perk5 { background-color: #ffd700; }
+.perk4 { background-color: #c0c0c0; }
+.perk3 { background-color: #CD7F32; }
+
+/* inner layout and styles */
+
+.perk { padding: 3%; text-align: center; }
+
+.perk img { float: left; margin: 0 3% 1.5% 0; }
+.perk7 img,
+.perk6 img { max-height: 10em; max-width: 50%; }
+.perk5 img { max-height: 6em; max-width: 30%; }
+
+.perk7 span, .perk6 span { font-size: 21px; }
+.perk5 span, .perk4 span, .perk3 span { font-size: 18px; text-shadow: 0 0 4px #fff; }
+
+.perk p { font-style: italic; margin-top: 3%; }
+.perk p:before { content:"“"; }
+.perk p:after { content:"”"; }
+.perk7 p, .perk6 p { font-size: 18px; }

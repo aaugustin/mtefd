@@ -1,17 +1,9 @@
 {% extends 'base.html' %}
+{% load staticfiles %}
 
 {% block title %}Updates - Multiple Template Engines{% endblock %}
 
-{% block extrahead %}
-
-<style>
-h2 { position: relative; }
-h2 a { display: none; }
-h2:hover a { display: block; position: absolute; right: 0; top: 0; text-decoration: none; }
-h2:hover a:link, h2:hover a:visited { color: #68a; }
-</style>
-
-{% endblock %}
+{% block extrahead %}<link href="{% static 'mtefdweb/css/updates.css' %}" rel="stylesheet" type="text/css">{% endblock %}
 
 {% block content %}
 

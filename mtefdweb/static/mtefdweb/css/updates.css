@@ -1,0 +1,4 @@
+h2 { position: relative; }
+h2 a { display: none; }
+h2:hover a { display: block; position: absolute; right: 0; top: 0; text-decoration: none; }
+h2:hover a:link, h2:hover a:visited { color: #68a; }
