@@ -73,7 +73,7 @@ class Funder(models.Model):
         return "Anonymous" if self.appearance == 'A' else self.name
 
     def send_token(self):
-        template = """
+        template = u"""
 Hello {name},
 
 Thanks for funding Multiple Template Engines for Django!
