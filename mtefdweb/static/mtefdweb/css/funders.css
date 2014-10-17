@@ -6,13 +6,14 @@ p.message + h2 { padding-top: 0;}
 /* outer layout */
 
 .perk7, .perk6, .perk5 { overflow: auto; height: 10em; }
+.perk4 { overflow: auto; height: 6em; }
 .perk7, .perk6 { margin: 0 auto 3%; }
 .perk5, .perk4, .perk3 { margin: 0 1.5% 3% 1.5%; }
 @media all and (min-width: 32em) {
     .perk5, .perk4, .perk3 { float: left; width: 41%; }
 }
 @media all and (min-width: 44em) {
-    .perk3 { width: 24%; }
+    .perk4, .perk3 { width: 24%; }
 }
 
 /* backgrounds */
@@ -28,10 +29,14 @@ p.message + h2 { padding-top: 0;}
 
 .perk { padding: 3%; text-align: center; }
 
-.perk img { float: left; margin: 0 3% 1.5% 0; }
+.perk7 img,
+.perk6 img,
+.perk5 img { float: left; margin: 0 3% 1.5% 0; }
+.perk4 img { display: block; margin: 1em auto 0; }
 .perk7 img,
 .perk6 img { max-height: 10em; max-width: 50%; }
 .perk5 img { max-height: 6em; max-width: 30%; }
+.perk4 img { max-height: 4em; max-width: 60%; }
 
 .perk7 span, .perk6 span { font-size: 21px; }
 .perk5 span, .perk4 span, .perk3 span { font-size: 18px; text-shadow: 0 0 4px #fff; }

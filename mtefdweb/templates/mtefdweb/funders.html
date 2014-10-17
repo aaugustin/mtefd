@@ -21,7 +21,7 @@
 
 <div class="perk perk{{ sponsor.perk}}">
 
-{% if sponsor.perk >= 4 and sponsor.logo %}
+{% if sponsor.perk >= 5 and sponsor.logo %}
 <img src="{{ sponsor.logo }}">
 {% endif %}
 
@@ -29,6 +29,11 @@
 <a href="{{ sponsor.link }}"><span>{{ sponsor.display_name }}</span></a>
 {% else %}
 <span>{{ sponsor.display_name }}</span>
+{% endif %}
+
+{# special case, put logo after name #}
+{% if sponsor.perk == 4 and sponsor.logo %}
+<img src="{{ sponsor.logo }}">
 {% endif %}
 
 {% if sponsor.perk >= 5 and sponsor.why %}
