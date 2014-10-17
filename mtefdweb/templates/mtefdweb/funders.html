@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load staticfiles %}
 
 {% block title %}Funders - Multiple Template Engines{% endblock %}
 
@@ -22,8 +23,11 @@ h1 + h2 { padding-top: 0;}
 }
 
 {# backgrounds #}
-.perk7 { background-color: #ffffff; border: thin solid #000; }
-.perk6 { background-color: #e5e4e2; border: thin solid #000; }
+/* Background patterns from subtlepatterns.com */
+.perk7 { background: url("{% static 'mtefdweb/img/diamond.png' %}");
+         background-size: 33px 25px; }
+.perk6 { background: url("{% static 'mtefdweb/img/brushed.png' %}");
+         background-size: 113.5px 113.5px; }
 .perk5 { background-color: #ffd700; }
 .perk4 { background-color: #c0c0c0; }
 .perk3 { background-color: #CD7F32; }
