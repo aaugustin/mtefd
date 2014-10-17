@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Funder profile - Multiple Template Engines{% endblock %}
+
+{% block content %}
+
+{% include 'mtefdweb/_menu.html' %}
+
+<h1>Edit your funder profile</h1>
+
+<p class="message info">You should receive an email shortly. If you don't, make sure you entered the same email address you used to fund the campaign on Indiegogo. If you're stuck, please <a href="{% url 'contact:form' %}">contact me</a>.</p>
+
+<p>You may now go back to the <a href="{% url 'mtefd-funders' %}">funders list</a> or <a href="{% url 'mtefd-updates' %}">home page</a>.</p>
+
+{% endblock %}

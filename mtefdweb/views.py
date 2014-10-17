@@ -2,12 +2,15 @@ import os.path
 import re
 
 from django.contrib import messages
+from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import render
+from django.views.generic.base import TemplateView
 from django.views.generic.dates import ArchiveIndexView
-from django.views.generic.edit import UpdateView
+from django.views.generic.edit import FormView, UpdateView
 
 from docutils.core import publish_parts
 
+from .forms import FunderEmail
 from .models import Funder, Update
 
 
@@ -40,6 +43,25 @@ def funders(request):
         'funders1': funders.exclude(appearance='I').filter(perk=1),
         'fundersx': funders.filter(appearance='I', perk__gte=1),
     })
+
+
+class FunderGetToken(FormView):
+    form_class = FunderEmail
+    success_url = reverse_lazy('mtefd-funder-get-token-done')
+    template_name = 'mtefdweb/funder_email.html'
+
+    def form_valid(self, form):
+        try:
+            funder = Funder.objects.get(email=form.cleaned_data['email'])
+        except Funder.DoesNotExist:
+            pass                                # don't leak email addresses
+        else:
+            funder.send_token()
+        return super(FunderGetToken, self).form_valid(form)
+
+
+class FunderGetTokenDone(TemplateView):
+    template_name = 'mtefdweb/funder_email_sent.html'
 
 
 class FunderInfo(UpdateView):

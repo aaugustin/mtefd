@@ -11,6 +11,8 @@
 
 <h1>Multiple Template Engines for Django</h1>
 
+<p class="message info">If you funded the campaign, you can <a href="{% url 'mtefd-funder-get-token' %}">edit your funder profile</a>.</p>
+
 {% for sponsor in sponsors %}
 
 {% ifchanged sponsor.perk %}

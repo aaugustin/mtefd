@@ -1,7 +1,7 @@
 /* space out headers a bit */
 
 h2 { clear: left; padding-top: 2em;}
-h1 + h2 { padding-top: 0;}
+p.message + h2 { padding-top: 0;}
 
 /* outer layout */
 

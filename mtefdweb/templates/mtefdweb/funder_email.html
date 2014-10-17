@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block title %}Funder profile - Multiple Template Engines{% endblock %}
+
+{% block extrahead %}<link href="{% static 'mtefdweb/css/forms.css' %}" rel="stylesheet" type="text/css">{% endblock %}
+
+{% block content %}
+
+{% include 'mtefdweb/_menu.html' %}
+
+<h1>Edit your funder profile</h1>
+
+{% for message in messages %}
+<p class="message {{ message.tags }}">{{ message }}</p>
+{% endfor %}
+
+<p>If you funded the campaign, enter your email address below and you'll receive a link to edit your profile.</p>
+
+<form action="{% url 'mtefd-funder-get-token' %}" method="POST">
+{% csrf_token %}
+<table class="form">
+{{ form.as_table }}
+<tr><td></td><td><input type="submit" value="Send me the link"></td></tr>
+</table>
+</form>
+
+{% endblock %}

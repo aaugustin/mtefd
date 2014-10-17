@@ -1,5 +1,6 @@
 import datetime
 
+from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.utils.crypto import get_random_string
@@ -64,6 +65,26 @@ class Funder(models.Model):
     @property
     def display_name(self):
         return "Anonymous" if self.appearance == 'A' else self.name
+
+    def send_token(self):
+        template = """
+Hello {name},
+
+Thanks for funding Multiple Template Engines for Django!
+
+Here's the private link to edit your funder profile:
+https://myks.org{link}
+
+Best regards,
+
+--
+Aymeric.
+"""
+        send_mail(
+            "Your funder profile",
+            template.format(name=self.name, link=self.get_absolute_url()),
+            "aymeric.augustin@polytechnique.org",
+            [self.email])
 
 
 class Update(models.Model):
