@@ -515,6 +515,12 @@ significant amount of work and cannot be automated.
 If you aren't convinced, try porting the ``django.contrib.admin`` templates —
 barely 1200 lines of template code — and see for yourself.
 
+Shouldn't Jinja2 be the default?
+--------------------------------
+
+In order to minimize disruption for developers, this project doesn't change
+the default engine. However it paves the way for doing so in a later release.
+
 Will the Django Template Langage be deprecated?
 -----------------------------------------------
 
