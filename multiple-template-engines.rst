@@ -275,6 +275,104 @@ This makes it less likely that developers encounter problems with the CSRF
 protection framework and choose te simply disable it.
 
 
+Implementation plan
+===================
+
+Jinja2 backend
+--------------
+
+Packaging
+~~~~~~~~~
+
+Jinja2 becomes an optional dependency of Django.
+
+Settings
+~~~~~~~~
+
+As a reminder, here's what the configuration for a Jinja2 backend looks like::
+
+    TEMPLATES = {
+        'jinja2': {
+            'ENGINE': 'django.template.backends.jinja2',
+            'DIRS': [],
+            'APP_DIRS': True,
+            'OPTIONS': {
+                # ...
+            },
+        },
+    }
+
+
+The most interesting option is called ``'env'``. It's a dotted Python path to
+a Jinja2 environment instance or a callable returning such an instance. It
+defaults to ``'jinja2.Environment'``.
+
+If ``'env'`` points to a callable, Django will invoke that callable and pass
+other options as keyword arguments. Furthermore, Django will use defaults that
+differ from Jinja2's for a few options if they aren't set explicitly:
+
+* ``'autoescape'``: ``True``
+* ``'loader'``: a loader configured for ``DIRS`` and ``APP_DIRS``
+* ``'auto_reload'``: ``settings.DEBUG``
+* ``'undefined'``: ``DebugUndefined if settings.DEBUG else Undefined``
+
+The default loader is configured as follows::
+
+    from django.apps import apps
+    from django.conf import settings
+
+    from jinja2 import ChoiceLoader, FileSystemLoader, PackageLoader
+
+    def get_default_loader(engine):
+        """Build default template loader for a Jinja2 template backend."""
+
+        loader = FileSystemLoader(settings.TEMPLATES[engine]['DIRS'])
+
+        if settings.TEMPLATES[engine]['APP_DIRS']:
+            app_loaders = [PackageLoader(app_config.name, 'jinja2')
+                           for app_config in apps.get_app_configs()]
+            loader = ChoiceLoader(loader, **app_loaders)
+
+        return loader
+
+If ``'env'`` points to an instance, Django uses it as the Jinja2 environment. No
+other options may be provided. Developers are encouraged to create a file
+called ``<project_name>/jinja2.py``, define their Jinja2 environment there,
+and set ``'env'`` to ``'<project_name>.jinja2.env'``. This will be the most
+convenient solution in general.
+
+Here's an example that uses the default settings and adds a few utilities to
+the global namespace::
+
+    # <project_name>/jinja2.py
+
+    from django.conf import settings
+    from django.contrib.staticfiles.templatetags.staticfiles import static
+    from django.core.urlresolvers import reverse
+    from django.template.backends.jinja2 import get_default_loader
+
+    from jinja2 import Environment
+
+
+    env = Environment(
+        autoescape=True,
+        loader=get_default_loader('jinja2'),
+        auto_reload=settings.DEBUG,
+        undefined=DebugUndefined if settings.DEBUG else Undefined,
+    )
+
+    env.globals.update({
+        'reverse': reverse,
+        'static': static,
+    })
+
+The first solution is quite limited. There is no way to configure filters,
+tests, or global values. Its main purpose is to provide a configuration that
+works out of the box. For any non-trivial use, developers will have to switch
+to the second solution. It involves a bit of boilerplate but it's much better
+aligned with Jinja2's philosophy.
+
+
 Appendix: the Django Template Language
 ======================================
 
