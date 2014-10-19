@@ -62,6 +62,32 @@ and Jinja2_.
 Design decisions
 ================
 
+General architecture
+--------------------
+
+The operation of a template engine can be split in three steps:
+
+1. Configure: set options that will affect the following two steps
+2. Load: find the template for a given identifier and preprocess it
+3. Render: process a template with a context and return a string
+
+When this document discusses configuring, loading or rendering, it refers to
+these steps or to their implementation.
+
+General principles
+------------------
+
+The Django Template Language hasn't evolved much over the years. It carries
+several design decisions made in 2005. Nine years later, if the Django team
+started from a clean slate, it may make different decisions.
+
+As a consequence, this project avoids encoding the legacy of the Django
+Template Language in APIs. It doesn't encourage third-party engines to provide
+compatibility with specific features of Django templates.
+
+The main exception is security, especially defense against XSS and CSRF
+attacks. This DEP is prescriptive for security-related APIs.
+
 Built-in engines
 ----------------
 
