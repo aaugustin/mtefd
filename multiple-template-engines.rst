@@ -287,7 +287,6 @@ The CSRF processor is hardcoded in ``RequestContext`` in order to remove one
 configuration step and thus minimize the likelihood that users simply disable
 the CSRF protection.
 
-
 Shortcuts
 ---------
 
@@ -416,6 +415,62 @@ another variant that ignores them.
     html = Template("Hello $name").safe_substitute(**CONTEXT)
 
 
+Appendix: Django - Jinja2 adapters
+==================================
+
+There are three maintained and mature Django - Jinja2 adapters: in
+chronological order, Coffin, Jingo, and Django-Jinja.
+
+Coffin
+------
+
+Coffin provides replacements for several Django APIs related to templates such
+as ``render``. Views must use Coffin APIs explicitly.
+
+This approach predates 44b9076b_ which recommends integrating third-party
+template engines with custom template loaders.
+
+Coffin focuses on minimizing differences between Django and Jinja2 template by
+making many Django filters and tags usable from Jinja2 templates.
+
+Jingo
+-----
+
+Jingo provides a template loader for Jinja2 templates that must be placed
+before Django's template loaders in ``TEMPLATE_LOADERS``.
+
+It provides APIs for registering globals and filters, but not tests. It
+recommends doing the registration in a conventional ``helpers`` submodule in
+installed applications.
+
+It registers a few globals and filters, including replacements for two of
+Django's most useful template tags: ``csrf`` and ``url``. However it doesn't
+deal with ``static``.
+
+It's capable of monkey-patching support for ``__html__`` but that isn't needed
+any more since af64429b_.
+
+Django-Jinja
+------------
+
+Django-Jinja replaces Django's template loaders with alternatives that handle
+both Jinja2 and Django templates.
+
+It advertises wide compatibility with Django template filters and tags. The
+documentation doesn't talk about limitations, if any.
+
+It integrates with Django's i18n framework, especially the ``makemessages``
+management command.
+
+It connects Jinja2's bytecode cache to Django's caching framework.
+
+It provides APIs for registering globals and filters.
+
+It includes ``url`` and ``static`` globals to replace Django's tags.
+
+It supports a few popular third-party applications explicitly.
+
+
 FAQ
 ===
 
@@ -522,6 +577,8 @@ CC0 1.0 Universal license`_.
 .. _Django: https://docs.djangoproject.com/en/stable/topics/templates/
 .. _Genshi: http://genshi.edgewall.org/
 .. _Mako: http://docs.makotemplates.org/
+.. _44b9076b: https://github.com/django/django/commit/44b9076bbed3e629230d9b77a8765e4c906036d1
+.. _af64429b: https://github.com/django/django/commit/af64429b991471b7a441e133b5b7d29070984f24
 .. _Topic guide: https://docs.djangoproject.com/en/stable/topics/templates/
 .. _Reference: https://docs.djangoproject.com/en/stable/ref/templates/api/
 .. _Built-in tags and filters: https://docs.djangoproject.com/en/stable/ref/templates/builtins/
