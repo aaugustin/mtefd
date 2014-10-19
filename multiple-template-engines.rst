@@ -278,6 +278,69 @@ protection framework and choose te simply disable it.
 Implementation plan
 ===================
 
+Django backend
+--------------
+
+Refactoring
+~~~~~~~~~~~
+
+The Django Template Language will be refactored into a standalone library.
+
+It will encapsulate its runtime configuration into an ``Engine`` class.
+
+Settings
+~~~~~~~~
+
+Here's the default configuration for a Django backend::
+
+    TEMPLATES = {
+        'django': {
+            'ENGINE': 'django.templates.backend.django',
+            'DIRS': [],
+            'APP_DIRS': True,
+            'OPTIONS': {
+                'ALLOWED_INCLUDE_ROOTS': [],
+                'CONTEXT_PROCESSORS': [
+                    'django.contrib.auth.context_processors.auth',
+                    'django.core.context_processors.debug',
+                    'django.core.context_processors.i18n',
+                    'django.core.context_processors.media',
+                    'django.core.context_processors.static',
+                    'django.core.context_processors.tz',
+                    'django.contrib.messages.context_processors.messages',
+                ],
+                'LOADERS': None,
+                'STRING_IF_INVALID': '',
+            },
+        },
+    }
+
+When the ``'LOADERS'`` option isn't set, Django configures:
+
+- a ``filesystem`` loader configured with ``DIRS``
+- an ``app_directories`` loader if and only if ``APP_DIRS`` is ``True``
+
+When the ``'LOADERS'`` option is set, Django:
+
+- accounts for ``DIRS`` if and only if the ``filesystem`` loader is included
+- ignores ``APP_DIRS``
+
+If ``TEMPLATES`` isn't defined at all, Django will automatically build a
+backwards compatible version as follows::
+
+    TEMPLATES = {
+        'django': {
+            'ENGINE': 'django.templates.backend.django',
+            'DIRS': settings.TEMPLATE_DIRS,
+            'OPTIONS': {
+                'ALLOWED_INCLUDE_ROOTS': settings.ALLOWED_INCLUDE_ROOTS,
+                'CONTEXT_PROCESSORS': settings.TEMPLATE_CONTEXT_PROCESSORS,
+                'LOADERS': settings.TEMPLATE_LOADERS,
+                'STRING_IF_INVALID': settings.TEMPLATE_STRING_IF_INVALID,
+            },
+        },
+    }
+
 Jinja2 backend
 --------------
 
@@ -301,7 +364,6 @@ As a reminder, here's what the configuration for a Jinja2 backend looks like::
             },
         },
     }
-
 
 The most interesting option is called ``'env'``. It's a dotted Python path to
 a Jinja2 environment instance or a callable returning such an instance. It
@@ -372,6 +434,21 @@ works out of the box. For any non-trivial use, developers will have to switch
 to the second solution. It involves a bit of boilerplate but it's much better
 aligned with Jinja2's philosophy.
 
+Dummy backend
+-------------
+
+This backend is built on top of `Template strings`_. It's a proof of concept.
+
+It doesn't accept any options. Its configuration looks as follows::
+
+    TEMPLATES = {
+        'django': {
+            'ENGINE': 'django.templates.backend.dummy',
+            'DIRS': [],
+            'APP_DIRS': True,
+        },
+    }
+
 
 Appendix: the Django Template Language
 ======================================
@@ -411,20 +488,19 @@ Settings
 Currently, Django provides six settings to configure its template engine:
 
 * ``ALLOWED_INCLUDE_ROOTS`` is an artifact of the ``{% ssi %}`` tag which
-  should be uncommon in modern Django projects. There is no pressing reason
-  to do anything about it, where "anything" would probably mean "deprecate
-  this tag in favor of ``{% include %}``".
+  should be uncommon in modern Django projects.
 
 * ``TEMPLATE_CONTEXT_PROCESSORS`` configures template context processors,
   which make common values available in the context of any template that is
-  rendered with a ``RequestContext`` or with the ``render`` shortcut.
+  rendered with a ``RequestContext``.
 
-* ``TEMPLATE_DEBUG`` is a generic switch. Third-party template engines that
-  provide a debug mode should honor its value. When it's set, Django creates
-  a template stack trace when an exception occurs in a template and adds an
-  ``origin`` attribute to ``Template`` objects.
+* ``TEMPLATE_DEBUG`` is a generic switch. When it's set, Django creates a
+  template stack trace when an exception occurs in a template and adds an
+  ``origin`` attribute to ``Template`` objects. Since it doesn't appear useful
+  to set in on a per-engine basis, it should remain a global setting.
 
-* ``TEMPLATE_DIRS`` configures the filesystem template loader.
+* ``TEMPLATE_DIRS`` configures the filesystem template loader. It's superseded
+  by the ``DIRS`` setting in each template backend.
 
 * ``TEMPLATE_LOADERS`` configures templates loaders.
 
@@ -432,13 +508,16 @@ Currently, Django provides six settings to configure its template engine:
   usability issues. It cannot be permanently set to a non-empty value because
   the admin misbehaves in that case. Everyone pretends that it doesn't exist.
 
+Except for ``TEMPLATE_DEBUG``, all these settings should become options in the
+configuration of Django template backends and lose their ``TEMPLATE_`` prefix.
+
 The template engine also takes a few other settings into account:
 
 * ``FILE_CHARSET`` defines the charset of template files loaded from the
   filesystem. Third-party template engines should honor its value.
 
 * ``INSTALLED_APPS`` defines the content of the application registry, which is
-  thenused by the app directories template loaders to locate templates in
+  then used by the app directories template loaders to locate templates in
   installed applications.
 
 * ``DATE_FORMAT``, ``SHORT_DATE_FORMAT`` and ``SHORT_DATETIME_FORMAT``
