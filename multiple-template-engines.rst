@@ -194,6 +194,86 @@ In addition, option 1 should be provided because it lets users implement their
 own scheme if option 4 doesn't cater for their use case and it won't add much
 complexity to the implementation.
 
+Configuring
+-----------
+
+Template engines are configured in a new setting called ``TEMPLATES``. Here's
+an example::
+
+    TEMPLATES = {
+        'django': {
+            'ENGINE': 'django.template.backends.django',
+            'DIRS': [],
+            'APP_DIRS': True,
+        },
+        'jinja2': {
+            'ENGINE': 'django.template.backends.jinja2',
+            'DIRS': [os.path.join(BASE_DIR, 'jinja2')],
+            'APP_DIRS': False,
+            'OPTIONS': {
+                'extensions': ['jinja2.ext.loopcontrols'],
+            },
+        },
+    }
+
+The structure is modeled after ``DATABASES`` and ``CACHES``, although there's
+a fairly important difference. Since the algorithm described above will allow
+Django to select a template engine automatically, key names won't matter much
+in general. However the order may matter; in that case the setting should be a
+``collections.OrderedDict``.
+
+Since most engines load templates from files, the top-level configuration
+contains two normalized settings:
+
+- ``DIRS`` works like Django's current ``TEMPLATE_DIRS``
+- ``APP_DIRS`` tells whether the engine should try to load templates from
+  conventional subdirectories inside applications
+
+``APP_DIRS`` is a boolean rather than the name of the subdirectory because
+that name is a property of the template engine, not a property of the project.
+It must be shared by all applications for interoperability of pluggable apps.
+Each engine will define a conventional name.
+
+Engine-specific settings go inside an ``OPTIONS`` dictionary. The intent is
+that they should be passed as keyword arguments when initializing the template
+engine.
+
+Loading
+-------
+
+Loading and rendering look like they could be handled independently, but
+they're coupled as soon as a template extends or includes another one, as the
+renderer needs to call the loader. Thus Django must have each template engine
+configure and use its own loading infrastructure.
+
+With its default settings, Django loads templates from directories listed in
+the ``TEMPLATE_DIRS`` setting and from the ``'templates'`` subdirectories
+inside installed applications. The latter allows pluggable applications to
+ship templates.
+
+These basic features should be provided by all template engines. Template
+engines may provide other options such as loading templates from Python eggs.
+
+Rendering
+---------
+
+Template engines must provide automatic HTML escaping to protect against XSS
+attacks. It must be enabled by default for two reasons:
+
+- security should be the default
+- that's Django's historical behavior
+
+Autoescaping is disabled by default in Jinja2, leaving it up the developer to
+define which variables need escaping and favoring performance over security.
+The Django adapter will reverse this default.
+
+Furthermore, when a template is rendered with a ``RequestContext``, templates
+engines must make the CSRF token available in the context, ideally with an
+equivalent of Django's ``{% csrf_token %}`` tag.
+
+This makes it less likely that developers encounter problems with the CSRF
+protection framework and choose te simply disable it.
+
 
 Appendix: the Django Template Language
 ======================================
