@@ -389,6 +389,18 @@ HTTP requests. But almost all templates need values from the ``request``.
 ``RequestContext`` is the pragmatic answer: it's instantiated with ``request``
 and passes it to context processors.
 
+Built-in context processors are defined in ``django.core.context_processors``.
+They were introduced in 49fd163a_ and b28e5e41_. At that time, the template
+engine was implemented in ``django.core.template``. The magic-removal refactor
+moved the template engine to ``django.template`` but didn't touch context
+processors.
+
+Context processors make various bits of Django easier to interact with in
+templates. They don't quite belong to ``django.core``. In contrib apps, they
+live at the top level, like template tags and filters. Likewise, the proper
+location for Django context processors would be ``django.context_processors``,
+next to ``django.templatetags``.
+
 The CSRF processor is hardcoded in ``RequestContext`` in order to remove one
 configuration step and thus minimize the likelihood that users simply disable
 the CSRF protection.
@@ -685,6 +697,8 @@ CC0 1.0 Universal license`_.
 .. _loose coupling: https://docs.djangoproject.com/en/stable/misc/design-philosophies/#loose-coupling
 .. _half a dozen libraries: https://www.djangopackages.com/grids/g/jinja2-template-loaders/
 .. _template strings: https://docs.python.org/3/library/string.html#template-strings
+.. _49fd163a: https://github.com/django/django/commit/49fd163a95074c07a23f2ccf9e23aebf5bee0bb2
+.. _b28e5e41: https://github.com/django/django/commit/b28e5e413332ac2becb9f475367783b94db889fc
 .. _Chameleon: https://chameleon.readthedocs.org/
 .. _Django: https://docs.djangoproject.com/en/stable/topics/templates/
 .. _Genshi: http://genshi.edgewall.org/
