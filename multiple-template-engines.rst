@@ -85,8 +85,11 @@ As a consequence, this project avoids encoding the legacy of the Django
 Template Language in APIs. It doesn't encourage third-party engines to provide
 compatibility with specific features of Django templates.
 
-The main exception is security, especially defense against XSS and CSRF
-attacks. This DEP is prescriptive for security-related APIs.
+The main exception is security. This DEP is prescriptive when it comes to
+security considerations:
+
+- HTML autoescaping is required by default, to defend against XSS attacks
+- integration with Django's CSRF protection framework is mandatory
 
 Built-in engines
 ----------------
