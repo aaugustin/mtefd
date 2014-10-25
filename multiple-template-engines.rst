@@ -211,12 +211,12 @@ an example:
 
     TEMPLATES = {
         'django': {
-            'ENGINE': 'django.template.backends.django',
+            'BACKEND': 'django.template.backends.django.DjangoTemplates',
             'DIRS': [],
             'APP_DIRS': True,
         },
         'jinja2': {
-            'ENGINE': 'django.template.backends.jinja2',
+            'BACKEND': 'django.template.backends.jinja2.Jinja2',
             'DIRS': [os.path.join(BASE_DIR, 'jinja2')],
             'APP_DIRS': False,
             'OPTIONS': {
@@ -281,9 +281,9 @@ can be used to get a safe HTML representation of the object. The result is
 guaranteed to be conventible into a ``str`` on Python 3 and a ``unicode`` on
 Python 2 but it may be a subclass.
 
-Furthermore, when a template is rendered with a ``RequestContext``, templates
-engines must make the CSRF token available in the context, ideally with an
-equivalent of Django's ``{% csrf_token %}`` tag.
+Furthermore, when a template is rendered with a reference to the current
+``request``, templates engines must make the CSRF token available in the
+context, ideally with an equivalent of Django's ``{% csrf_token %}`` tag.
 
 This makes it less likely that developers encounter problems with the CSRF
 protection framework and choose te simply disable it.
@@ -291,6 +291,109 @@ protection framework and choose te simply disable it.
 
 Implementation plan
 ===================
+
+Backends API
+------------
+
+The entry point for a template engine is the class designated by ``'BACKEND'``
+in its configuration.
+
+This class must inherit ``django.templates.backends.BaseEngine`` or implement
+the following interface.
+
+.. code:: python
+
+    from django.core.exceptions import ImproperlyConfigured
+    from django.template.base import TemplateDoesNotExist
+    # This variable is used as a convenience to keep the specification short.
+    from django.template.loaders.app_directories import app_template_dirs
+
+
+    class BaseEngine(object):
+
+        # Core methods.
+
+        def __init__(self, **options):
+            """
+            Initializes the template engine.
+
+            Receives the configuration options as keyword arguments.
+            """
+            self.dirs = tuple(options.pop('DIRS', ()))
+            if options.pop('APP_DIRS', False):
+                self.dirs += app_template_dirs
+
+            if options:
+                raise ImproperlyConfigured(
+                    'Unknown options: {}'.format(', '.join(options)))
+
+        def get_template(self, template_name):
+            """
+            Load and return a template for the given name.
+
+            Raise TemplateDoesNotExist if no such template exists.
+            """
+            raise NotImplementedError(
+                'subclasses of BaseEngine must provide '
+                'a get_template() method')
+
+        def get_template_from_string(self, template_code):
+            """
+            Create and return a template for the given source code.
+
+            This method is optional.
+            """
+            raise NotImplementedError(
+                'subclasses of BaseEngine should provide '
+                'a get_template_from_string() method')
+
+        # Ancillary methods.
+
+        def select_template(self, template_name_list):
+            """
+            Load and return a template for one of the given names.
+
+            Raise TemplateDoesNotExist if no such template exists.
+            """
+            for template_name in template_name_list:
+                try:
+                    return self.get_template(template_name)
+                except TemplateDoesNotExist:
+                    continue
+            if template_name_list:
+                raise TemplateDoesNotExist(', '.join(template_name_list))
+            else:
+                raise TemplateDoesNotExist('No template names provided')
+
+Template objects returned by backends must conform to the following interface.
+
+.. code:: python
+
+    from django.middleware.csrf import get_token
+
+
+    class BaseTemplate(object):
+
+        def render(self, context, request=None):
+            """
+            Render this template with a given context.
+
+            If request is provided, it must be a ``django.http.HttpRequest``.
+            """
+            # The comments below specify how to handle the request argument.
+            if request is not None:
+                # Passing the CSRF token is mandatory but the implementation
+                # isn't enforced. Here's the most naive solution.
+                context['csrf_token'] = get_token(request)
+                # Passing the request is optional. Since Django doesn't have a
+                # global request object, it's useful to put it in the context.
+                context['request'] = request
+
+            raise NotImplementedError(
+                'subclasses of BaseTemplate must provide a render() method')
+
+``Engine`` and ``Template`` classes in adapters should wrap the underlying
+engine rather than inherit it.
 
 Django backend
 --------------
@@ -300,7 +403,8 @@ Refactoring
 
 The Django Template Language will be refactored into a standalone library.
 
-It will encapsulate its runtime configuration into an ``Engine`` class.
+It will encapsulate its runtime configuration into an instance of
+``DjangoTemplates``.
 
 Settings
 ~~~~~~~~
@@ -311,7 +415,7 @@ Here's the default configuration for a Django backend:
 
     TEMPLATES = {
         'django': {
-            'ENGINE': 'django.templates.backend.django',
+            'BACKEND': 'django.templates.backends.django.DjangoTemplates',
             'DIRS': [],
             'APP_DIRS': True,
             'OPTIONS': {
@@ -348,7 +452,7 @@ backwards compatible version as follows:
 
     TEMPLATES = {
         'django': {
-            'ENGINE': 'django.templates.backend.django',
+            'BACKEND': 'django.templates.backend.django.DjangoTemplates',
             'DIRS': settings.TEMPLATE_DIRS,
             'OPTIONS': {
                 'ALLOWED_INCLUDE_ROOTS': settings.ALLOWED_INCLUDE_ROOTS,
@@ -376,7 +480,7 @@ As a reminder, here's what the configuration for a Jinja2 backend looks like:
 
     TEMPLATES = {
         'jinja2': {
-            'ENGINE': 'django.template.backends.jinja2',
+            'BACKEND': 'django.template.backends.jinja2.Jinja2',
             'DIRS': [],
             'APP_DIRS': True,
             'OPTIONS': {
@@ -469,7 +573,7 @@ It doesn't accept any options. Its configuration looks as follows:
 
     TEMPLATES = {
         'django': {
-            'ENGINE': 'django.templates.backend.dummy',
+            'BACKEND': 'django.templates.backend.dummy.TemplateStrings',
             'DIRS': [],
             'APP_DIRS': True,
         },
