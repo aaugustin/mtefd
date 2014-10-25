@@ -276,6 +276,11 @@ Autoescaping is disabled by default in Jinja2, leaving it up the developer to
 define which variables need escaping and favoring performance over security.
 The Django adapter will reverse this default.
 
+If an object provides an ``__html__`` method, the engine should assume that it
+can be used to get a safe HTML representation of the object. The result is
+guaranteed to be conventible into a ``str`` on Python 3 and a ``unicode`` on
+Python 2 but it may be a subclass.
+
 Furthermore, when a template is rendered with a ``RequestContext``, templates
 engines must make the CSRF token available in the context, ideally with an
 equivalent of Django's ``{% csrf_token %}`` tag.
