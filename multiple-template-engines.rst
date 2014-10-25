@@ -126,13 +126,17 @@ project.
 If several template engines are configured, when tasked with rendering a given
 template, Django must choose one. There are at least four ways to do this.
 
-1. Explicitly selecting an engine, for example::
+1. Explicitly selecting an engine, for example:
+
+   .. code:: python
 
        html = render_to_string('index.html', context, engine='jinja2')
 
    Many APIs would work here, but all would add some boilerplate.
 
-2. Explicitly tagging templates, for example::
+2. Explicitly tagging templates, for example:
+
+   .. code:: jinja
 
        {# language: jinja2 #}
 
@@ -201,7 +205,9 @@ Configuring
 -----------
 
 Template engines are configured in a new setting called ``TEMPLATES``. Here's
-an example::
+an example:
+
+.. code:: python
 
     TEMPLATES = {
         'django': {
@@ -294,7 +300,9 @@ It will encapsulate its runtime configuration into an ``Engine`` class.
 Settings
 ~~~~~~~~
 
-Here's the default configuration for a Django backend::
+Here's the default configuration for a Django backend:
+
+.. code:: python
 
     TEMPLATES = {
         'django': {
@@ -329,7 +337,9 @@ When the ``'LOADERS'`` option is set, Django:
 - ignores ``APP_DIRS``
 
 If ``TEMPLATES`` isn't defined at all, Django will automatically build a
-backwards compatible version as follows::
+backwards compatible version as follows:
+
+.. code:: python
 
     TEMPLATES = {
         'django': {
@@ -355,7 +365,9 @@ Jinja2 becomes an optional dependency of Django.
 Settings
 ~~~~~~~~
 
-As a reminder, here's what the configuration for a Jinja2 backend looks like::
+As a reminder, here's what the configuration for a Jinja2 backend looks like:
+
+.. code:: python
 
     TEMPLATES = {
         'jinja2': {
@@ -381,7 +393,9 @@ differ from Jinja2's for a few options if they aren't set explicitly:
 * ``'auto_reload'``: ``settings.DEBUG``
 * ``'undefined'``: ``DebugUndefined if settings.DEBUG else Undefined``
 
-The default loader is configured as follows::
+The default loader is configured as follows:
+
+.. code:: python
 
     from django.apps import apps
     from django.conf import settings
@@ -407,7 +421,9 @@ and set ``'env'`` to ``'<project_name>.jinja2.env'``. This will be the most
 convenient solution in general.
 
 Here's an example that uses the default settings and adds a few utilities to
-the global namespace::
+the global namespace:
+
+.. code:: python
 
     # <project_name>/jinja2.py
 
@@ -442,7 +458,9 @@ Dummy backend
 
 This backend is built on top of `Template strings`_. It's a proof of concept.
 
-It doesn't accept any options. Its configuration looks as follows::
+It doesn't accept any options. Its configuration looks as follows:
+
+.. code:: python
 
     TEMPLATES = {
         'django': {
@@ -615,7 +633,7 @@ Examples render a template called ``NAME = 'hello.html'`` found in one of
 Chameleon_
 ----------
 
-::
+.. code:: python
 
     from chameleon import PageTemplateLoader
 
@@ -630,14 +648,16 @@ Configuration is performed by passing keyword arguments to
 Django_
 -------
 
-::
+.. code:: python
 
     from django.template import loader
 
     template = loader.get_template(NAME)
     html = template.render(CONTEXT)
 
-or::
+or:
+
+.. code:: python
 
     from django.template.loader import render_to_string
 
@@ -656,7 +676,7 @@ Configuration is performed through global settings. (This is bad.)
 Genshi_
 -------
 
-::
+.. code:: python
 
     from genshi.template import TemplateLoader
 
@@ -670,7 +690,7 @@ complex than other engines analyzed here.
 Jinja2_
 -------
 
-::
+.. code:: python
 
     from jinja2 import Environment, FileSystemLoader
 
@@ -688,7 +708,7 @@ loaders as Django.
 Mako_
 -----
 
-::
+.. code:: python
 
     from mako.lookup import TemplateLookup
 
@@ -706,7 +726,7 @@ Template strings provide simplified string interpolation. They only implement
 rendering, with a variant that raises exceptions for missing substitutions and
 another variant that ignores them.
 
-::
+.. code:: python
 
     from string import Template
 
@@ -801,7 +821,9 @@ No, there is no plan to deprecate it at this time.
 How does this account for differences in APIs?
 ----------------------------------------------
 
-As shown above, most Python templates engines support the following pattern::
+As shown above, most Python templates engines support the following pattern:
+
+.. code:: python
 
     loader = TemplateLoader(**CONFIG)
     template = loader.load(NAME)

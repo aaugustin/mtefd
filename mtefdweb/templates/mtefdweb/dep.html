@@ -1,6 +1,9 @@
 {% extends 'base.html' %}
+{% load staticfiles %}
 
 {% block title %}DEP - Multiple Template Engines{% endblock %}
+
+{% block extrahead %}<link href="{% static 'mtefdweb/css/pygments.css' %}" rel="stylesheet" type="text/css">{% endblock %}
 
 {% block content %}
 

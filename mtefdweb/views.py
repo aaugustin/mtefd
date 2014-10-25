@@ -24,7 +24,7 @@ def dep(request):
     with open(dep_file) as dep_handle:
         dep_rst = dep_handle.read()
 
-    options = {'initial_header_level': 2}
+    options = {'initial_header_level': 2, 'syntax_highlight': 'short'}
     dep_html = publish_parts(dep_rst, writer_name='html',
                              settings_overrides=options)['html_body']
 
