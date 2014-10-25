@@ -3,11 +3,18 @@
 
 {% block title %}Updates - Multiple Template Engines{% endblock %}
 
-{% block extrahead %}<link href="{% static 'mtefdweb/css/updates.css' %}" rel="stylesheet" type="text/css">{% endblock %}
+{% block extrahead %}
+<link href="{% static 'mtefdweb/css/updates.css' %}" rel="stylesheet" type="text/css">
+<link href="{% url 'mtefd-updates-rss' %}" rel="alternate" type="application/rss+xml">
+{% endblock %}
 
 {% block content %}
 
 {% include 'mtefdweb/_menu.html' %}
+
+<div style="float: right; margin-top: 14px;">
+<a href="{% url 'mtefd-updates-rss' %}"><img src="{% static 'mtefdweb/img/rss.svg' %}" alt="RSS" width="16" height="16"></a>
+</div>
 
 <h1>Multiple Template Engines for Django</h1>
 
