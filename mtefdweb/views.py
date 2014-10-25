@@ -1,7 +1,9 @@
+import datetime
 import os.path
 import re
 
 from django.contrib import messages
+from django.contrib.syndication.views import Feed
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import render
 from django.views.generic.base import TemplateView
@@ -83,3 +85,22 @@ class Updates(ArchiveIndexView):
     model = Update
     allow_empty = True
     date_field = 'date'
+
+
+class UpdatesFeed(Feed):
+    title = "Multiple Template Engines for Django updates"
+    link = reverse_lazy('mtefd-updates')
+    feed_url = reverse_lazy('mtefd-updates-rss')
+
+    def items(self):
+        today = datetime.date.today()
+        return Update.objects.filter(date__lte=today).order_by('-date')[:10]
+
+    def item_title(self, update):
+        return update.title
+
+    def item_pubdate(self, update):
+        return datetime.datetime.combine(update.date, datetime.time.min)
+
+    def item_description(self, update):
+        return update.html

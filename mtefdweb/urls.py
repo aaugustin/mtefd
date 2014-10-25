@@ -13,4 +13,5 @@ urlpatterns = [
     url(r'^funder/(?P<token>\w{12})/$', views.FunderInfo.as_view(),
         name='mtefd-funder-info'),
     url(r'^$', views.Updates.as_view(), name='mtefd-updates'),
+    url(r'^rss/$', views.UpdatesFeed(), name='mtefd-updates-rss'),
 ]

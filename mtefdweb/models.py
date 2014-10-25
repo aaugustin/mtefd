@@ -112,3 +112,6 @@ class Update(models.Model):
     def save(self, *args, **kwargs):
         self.html = markdown(self.body, **self.MARKDOWN_OPTIONS)
         super(Update, self).save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        return '%s#%s' % (reverse('mtefd-updates'), self.date)
