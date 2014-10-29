@@ -406,6 +406,11 @@ The Django Template Language will be refactored into a standalone library.
 It will encapsulate its runtime configuration into an instance of
 ``DjangoTemplates``.
 
+Context processors will be moved from ``django.core.context_processors`` to
+``django.template.context_processors`` with a deprecation period. Since users
+will have to write a new ``TEMPLATES`` setting, it's a good time to clean up
+this historical anomaly.
+
 Settings
 ~~~~~~~~
 
@@ -469,7 +474,7 @@ Jinja2 backend
 Packaging
 ~~~~~~~~~
 
-Jinja2 becomes an optional dependency of Django.
+Jinja2 will become an optional dependency of Django.
 
 Settings
 ~~~~~~~~
@@ -704,9 +709,10 @@ processors.
 
 Context processors make various bits of Django easier to interact with in
 templates. They don't quite belong to ``django.core``. In contrib apps, they
-live at the top level, like template tags and filters. Likewise, the proper
+live at the top level, like middleware and template tags. The corresponding
 location for Django context processors would be ``django.context_processors``,
-next to ``django.templatetags``.
+next to ``django.templatetags``. However, since they're specific to the Django
+Template Language, ``django.template.context_processors`` seems more natural.
 
 The CSRF processor is hardcoded in ``RequestContext`` in order to remove one
 configuration step and thus minimize the likelihood that users simply disable
@@ -753,7 +759,6 @@ Chameleon_
 Configuration is performed by passing keyword arguments to
 ``PageTemplateLoader``, which passes them to ``render``.
 
-
 Django_
 -------
 
@@ -780,7 +785,6 @@ or::
     html = render_to_string(NAME, CONTEXT, RequestContext(request))
 
 Configuration is performed through global settings. (This is bad.)
-
 
 Genshi_
 -------
