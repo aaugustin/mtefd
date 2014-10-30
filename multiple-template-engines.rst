@@ -370,6 +370,7 @@ Template objects returned by backends must conform to the following interface.
 .. code:: python
 
     from django.middleware.csrf import get_token
+    from django.utils.html import format_html
 
 
     class BaseTemplate(object):
@@ -383,8 +384,11 @@ Template objects returned by backends must conform to the following interface.
             # The comments below specify how to handle the request argument.
             if request is not None:
                 # Passing the CSRF token is mandatory but the implementation
-                # isn't enforced. Here's the most naive solution.
-                context['csrf_token'] = get_token(request)
+                # isn't enforced. Here's a very naive solution. For a more
+                # complete one, see django.template.defaulttags.CsrfTokenNode.
+                context['csrf_token'] = format_html(
+                    '<input type="hidden" name="csrfmiddlewaretoken" '
+                    'value="{}" />', get_token(request))
                 # Passing the request is optional. Since Django doesn't have a
                 # global request object, it's useful to put it in the context.
                 context['request'] = request
