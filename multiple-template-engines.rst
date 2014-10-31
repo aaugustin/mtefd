@@ -798,6 +798,20 @@ Conventional attributes
   has a ``silent_variable_failure`` attribute that evaluates to ``True``,
   Django will swallow the exception and render ``TEMPLATE_STRING_IF_INVALID``.
 
+Private APIs
+------------
+
+The following APIs aren't documented but will have to be made public to allow
+for feature parity between Django templates and third-party template engines.
+
+Debug
+~~~~~
+
+* ``Origin.reload()``
+* If an exception has a ``django_template_source`` attribute, it's expected to
+  be in the format ``origin, (start, end)`` where ``origin`` is an ``Origin``
+  instance and ``start, end`` provide the location of the error in that file.
+
 
 Appendix: Python template engines
 =================================
