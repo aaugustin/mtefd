@@ -735,6 +735,17 @@ the result in a ``HttpResponse``.
 ``render`` creates a ``RequestContext`` for rendering while
 ``render_to_response`` uses a plain ``Context``.
 
+Template responses
+------------------
+
+``SimpleTemplateResponse`` and ``TemplateResponse`` are bridges between
+``HttpResponse`` and the template engine. While they're defined in
+``django.template.response``, they cannot be considered as features of the
+template engine.
+
+``TemplateResponse`` creates a ``RequestContext`` for rendering while
+``SimpleTemplateResponse`` uses a plain ``Context``.
+
 Public APIs
 -----------
 
