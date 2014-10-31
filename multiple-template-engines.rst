@@ -832,6 +832,63 @@ Debug
   be in the format ``origin, (start, end)`` where ``origin`` is an ``Origin``
   instance and ``start, end`` provide the location of the error in that file.
 
+Dependency analysis
+-------------------
+
+This section reviews dependencies on ``django.template`` or
+``django.templatetags`` from other components of Django and singles out
+reliance on private APIs.
+
+The list of dependencies was built by searching for ``from django import
+template`` and ``from django.template`` in the source tree.
+
+Public APIs
+~~~~~~~~~~~
+
+Various parts of Django depend on the public APIs of ``Template``,
+``Context``, ``RequestContext``, and ``loader``.
+
+Contrib apps that provide views often import ``SimpleTemplateResponse`` or
+``TemplateResponse``.
+
+Template tags and filters libraries in core and in contrib apps instaciate a
+``Library``.
+
+Private APIs
+~~~~~~~~~~~~
+
+``django.test.signals`` depends on various internals of the template engine to
+reset their state when the corresponding settings change.
+
+``django.test.utils`` defines two context managers and decorators,
+``override_template_loaders`` and ``override_with_test_loader``, that are used
+by the template tests and a few others.
+
+``django.utils.translation.templatize`` invokes the lexer of the template
+engine to extract tokens and generate a pseudo-Python file that ``xgettext``
+can parse.
+
+``django.views.debug`` relies on some internals of the template loading
+infrastructure.
+
+The admindocs contrib app depends on internals of the Django Template Language
+to introspect template tags and filters libraries.
+
+``test_client_regress.tests.TemplateExceptionTests`` resets internals of the
+template loading infrastructure.
+
+Template filters
+~~~~~~~~~~~~~~~~
+
+``django.views.debug`` imports directly the ``force_escape`` and ``pprint``
+template filters.
+
+``django.contrib.admin.helpers`` imports directly the ``capfirst`` and
+``linebreaksbr`` template filters.
+
+``django.contrib.humanize.templatetags.humanize`` imports directly the
+``date``, ``floatformat``, ``timesince``, and ``timeuntil`` template filters.
+
 
 Appendix: Python template engines
 =================================
