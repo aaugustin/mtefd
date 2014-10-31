@@ -288,6 +288,15 @@ context, ideally with an equivalent of Django's ``{% csrf_token %}`` tag.
 This makes it less likely that developers encounter problems with the CSRF
 protection framework and choose te simply disable it.
 
+Management commands
+-------------------
+
+The ``startapp`` and ``startproject`` management commands won't support
+alternative template engines for now. While it would be feasible to add a
+``--backend/-b`` option, it would only support built-in backends, because
+these commands runs without configured settings, making the feature less
+attractive.
+
 
 Implementation plan
 ===================
