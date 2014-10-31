@@ -735,6 +735,69 @@ the result in a ``HttpResponse``.
 ``render`` creates a ``RequestContext`` for rendering while
 ``render_to_response`` uses a plain ``Context``.
 
+Public APIs
+-----------
+
+Here's a summary of the template-related APIs mentioned in the `reference
+documentation`_. It encompasses all APIs that interact with other components.
+APIs for defining custom template tags and filters aren't included because
+they're internal to the Django Template Language, thus irrelevant here. All
+Python paths are relative to ``django.template``.
+
+Template
+~~~~~~~~
+
+* ``Template(str)``
+* ``Template.render(context)``
+* ``Template.origin`` — when ``TEMPLATE_DEBUG`` is ``True``, it's either a
+  ``loader.LoaderOrigin`` or a ``StringOrigin``.
+
+Context
+~~~~~~~
+
+* ``Context([dict, current_app])``
+    * ``current_app`` is used by the ``{% url %}`` tag for reversing
+      namespaced URLs. (Such coupling is embarrassing.)
+* ``Context.__getitem__(key)``
+* ``Context.__setitem__(key, value)``
+* ``Context.__delitem__(key)``
+* ``Context.push(**context)`` — it works as a context manager too
+* ``Context.pop()``
+* ``Context.update(context)`` — like ``push(**context)``
+* ``Context.flatten()``
+* ``Context.dicts`` — it appears in the example of supporting an alternative
+  template language
+
+RequestContext
+~~~~~~~~~~~~~~
+
+* ``RequestContext(request, [dict, processors, current_app])``
+
+loader
+~~~~~~
+
+* ``loader.get_template(template_name[, dirs])``
+* ``loader.select_template(template_name_list[, dirs])``
+* ``loader.render_to_string(template_name, [dictionary, context_instance])``
+
+Exceptions
+~~~~~~~~~~
+
+* ``TemplateDoesNotExist``
+* ``TemplateSyntaxError``
+
+Conventional attributes
+~~~~~~~~~~~~~~~~~~~~~~~
+
+* Django won't call a callable variable:
+    * If it has an ``alters_data`` attribute that evaluates to ``True``; it
+      will render ``TEMPLATE_STRING_IF_INVALID`` instead.
+    * If it has a ``do_not_call_in_templates`` attribute that evaluates to
+      ``True``; it will render the string representation of the callable.
+* If resolving a callable variable triggers an exception and that exception
+  has a ``silent_variable_failure`` attribute that evaluates to ``True``,
+  Django will swallow the exception and render ``TEMPLATE_STRING_IF_INVALID``.
+
 
 Appendix: Python template engines
 =================================
@@ -1028,4 +1091,5 @@ CC0 1.0 Universal license`_.
 .. _Reference: https://docs.djangoproject.com/en/1.7/ref/templates/api/
 .. _Built-in tags and filters: https://docs.djangoproject.com/en/1.7/ref/templates/builtins/
 .. _Custom tags and filters: https://docs.djangoproject.com/en/1.7/howto/custom-template-tags/
+.. _reference documentation: https://docs.djangoproject.com/en/1.7/ref/templates/api/
 .. _Creative Commons CC0 1.0 Universal license: http://creativecommons.org/publicdomain/zero/1.0/deed
