@@ -1008,24 +1008,24 @@ CC0 1.0 Universal license`_.
 
 
 .. _Jinja2: http://jinja.pocoo.org/
-.. _quite opinionated: https://docs.djangoproject.com/en/stable/misc/design-philosophies/#template-system
+.. _quite opinionated: https://docs.djangoproject.com/en/1.7/misc/design-philosophies/#template-system
 .. _have failed: https://github.com/mitsuhiko/templatetk/blob/master/POST_MORTEM
-.. _simple_tag: https://docs.djangoproject.com/en/stable/howto/custom-template-tags/#simple-tags
-.. _inclusion_tag: https://docs.djangoproject.com/en/stable/howto/custom-template-tags/#inclusion-tags
-.. _assignment_tag: https://docs.djangoproject.com/en/stable/howto/custom-template-tags/#assignment-tags
-.. _loose coupling: https://docs.djangoproject.com/en/stable/misc/design-philosophies/#loose-coupling
+.. _simple_tag: https://docs.djangoproject.com/en/1.7/howto/custom-template-tags/#simple-tags
+.. _inclusion_tag: https://docs.djangoproject.com/en/1.7/howto/custom-template-tags/#inclusion-tags
+.. _assignment_tag: https://docs.djangoproject.com/en/1.7/howto/custom-template-tags/#assignment-tags
+.. _loose coupling: https://docs.djangoproject.com/en/1.7/misc/design-philosophies/#loose-coupling
 .. _half a dozen libraries: https://www.djangopackages.com/grids/g/jinja2-template-loaders/
 .. _template strings: https://docs.python.org/3/library/string.html#template-strings
 .. _49fd163a: https://github.com/django/django/commit/49fd163a95074c07a23f2ccf9e23aebf5bee0bb2
 .. _b28e5e41: https://github.com/django/django/commit/b28e5e413332ac2becb9f475367783b94db889fc
 .. _Chameleon: https://chameleon.readthedocs.org/
-.. _Django: https://docs.djangoproject.com/en/stable/topics/templates/
+.. _Django: https://docs.djangoproject.com/en/1.7/topics/templates/
 .. _Genshi: http://genshi.edgewall.org/
 .. _Mako: http://docs.makotemplates.org/
 .. _44b9076b: https://github.com/django/django/commit/44b9076bbed3e629230d9b77a8765e4c906036d1
 .. _af64429b: https://github.com/django/django/commit/af64429b991471b7a441e133b5b7d29070984f24
-.. _Topic guide: https://docs.djangoproject.com/en/stable/topics/templates/
-.. _Reference: https://docs.djangoproject.com/en/stable/ref/templates/api/
-.. _Built-in tags and filters: https://docs.djangoproject.com/en/stable/ref/templates/builtins/
-.. _Custom tags and filters: https://docs.djangoproject.com/en/stable/howto/custom-template-tags/
+.. _Topic guide: https://docs.djangoproject.com/en/1.7/topics/templates/
+.. _Reference: https://docs.djangoproject.com/en/1.7/ref/templates/api/
+.. _Built-in tags and filters: https://docs.djangoproject.com/en/1.7/ref/templates/builtins/
+.. _Custom tags and filters: https://docs.djangoproject.com/en/1.7/howto/custom-template-tags/
 .. _Creative Commons CC0 1.0 Universal license: http://creativecommons.org/publicdomain/zero/1.0/deed
