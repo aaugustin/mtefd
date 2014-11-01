@@ -288,6 +288,50 @@ context, ideally with an equivalent of Django's ``{% csrf_token %}`` tag.
 This makes it less likely that developers encounter problems with the CSRF
 protection framework and choose te simply disable it.
 
+Internationalization
+--------------------
+
+There are two sides to internationalizing templates:
+
+1. marking strings for translation
+2. extracting translatable strings
+
+The former isn't an issue. Each template engine can provide a wrapper for the
+functions from ``django.utils.translation`` or recommend an idiomatic way to
+invoke them.
+
+The latter is more involved because the current implementation of the
+``makemessages`` management command is inflexible in three ways — see the
+appendix for details:
+
+* All files found in the current working directory are treated identically
+* Any file that isn't a Python module is assumed to be written in the DTL
+* Extraction algorithms are hardcoded in ``django.utils.translation``
+
+Ideally each template engine should provide a list of template files it can
+handle and implement a suitable extraction process for translatable strings.
+However this raises several questions.
+
+* What will the API look like? Considering the ad-hoc nature of the current
+  code of ``makemessages``, it's hard to answer this question without trying
+  to implement an API and seeing how it turns out.
+* How feasible is it for template engines to provide a relevant list of their
+  template files? How should applications installed outside of the current
+  working directory be handled? This may warrant provisions for customizing
+  the set of files to extract strings from.
+* Can backwards-compatibility be preserved for most use cases? This proposal
+  requires properly configured template engines while the current code can run
+  without settings. An option to enable "legacy mode" and preserve the
+  historical behavior of ``makemessages`` may help.
+
+An alternative would be to switch to Babel_ for extracting translatable
+strings. It would solve the problems described above at the cost of adding a
+dependency and requiring developers to write an appropriate configuration file
+for each project. In contrast ``makemessages`` can take advantage of the
+structure of Django projects to handle common use cases automatically. Since
+it isn't clear that the advantages outweigh the drawbacks and in order to
+minimize changes, this idea is rejected from the scope of this project.
+
 Management commands
 -------------------
 
@@ -373,6 +417,35 @@ the following interface.
                 raise TemplateDoesNotExist(', '.join(template_name_list))
             else:
                 raise TemplateDoesNotExist('No template names provided')
+
+        # Internationalization methods (tentative).
+
+        def extract_from_dir(dirname=None, **options):
+            """
+            Extract messages from template files found in the given directory.
+            """
+            # The default implementation will build upon the find_files and
+            # prepare_for_xgettext methods defined below and xgettext itself.
+
+        def find_files(self, dirname, followlinks=False):
+            """
+            List template files found in the given directory.
+            """
+            # The default implementation will walk directories pointed to by
+            # DIRS and APP_DIRS if they're under dirname and return all files
+            # found in these directories.
+
+        xgettext_target_language = "Python"
+
+        def prepare_for_xgettext(self, template_code, **options):
+            """
+            Transform template code into something xgettext accepts as Python.
+
+            The target language is defined by xgettext_target_language.
+            """
+            raise NotImplementedError(
+                'subclasses of BaseEngine must provide '
+                'a prepare_for_xgettext() method')
 
 Template objects returned by backends must conform to the following interface.
 
@@ -890,6 +963,35 @@ template filters.
 ``date``, ``floatformat``, ``timesince``, and ``timeuntil`` template filters.
 
 
+Appendix: extraction of translatable strings
+============================================
+
+Currently the ``makemessages`` management command is implement as follows.
+
+* It walks the filesystem under the current working directory (``.``).
+* It builds a list of files to process and corresponding locale paths.
+* It extracts translatable strings from each file with ``xgettext``:
+    * If the domain is ``django``:
+        * If the file extension is ``.py``, the file is processed by
+          ``xgettext`` as is.
+        * If it's another known extension — ``.html`` and ``.txt`` by default,
+          or the values set on the command line — the file is assumed to be a
+          Django template and is run through a 200-line function that spits a
+          syntactically correct Python file with the appropriate translation
+          calls at the same line numbers. The resulting file is processed by
+          ``xgettext``.
+        * Otherwise, the file ignored.
+    * If the domain is ``djangojs``:
+        * If the file extension is known — ``.js`` by default, or the values
+          set on the command line — the file is transformed into something
+          that resembles C. The resulting file is processed by ``xgettext``.
+        * Otherwise, the file ignored.
+* The output of ``xgettext`` is appended to a ``.pot`` file in the target
+  locale directory with minor adjustments.
+* Message catalogs ie. ``.po files`` for each language are updated according
+  to the ``.pot`` file with ``msgmerge``.
+
+
 Appendix: Python template engines
 =================================
 
@@ -1170,6 +1272,7 @@ CC0 1.0 Universal license`_.
 .. _loose coupling: https://docs.djangoproject.com/en/1.7/misc/design-philosophies/#loose-coupling
 .. _half a dozen libraries: https://www.djangopackages.com/grids/g/jinja2-template-loaders/
 .. _template strings: https://docs.python.org/3/library/string.html#template-strings
+.. _Babel: http://babel.pocoo.org/
 .. _49fd163a: https://github.com/django/django/commit/49fd163a95074c07a23f2ccf9e23aebf5bee0bb2
 .. _b28e5e41: https://github.com/django/django/commit/b28e5e413332ac2becb9f475367783b94db889fc
 .. _Chameleon: https://chameleon.readthedocs.org/
