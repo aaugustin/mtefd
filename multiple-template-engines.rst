@@ -54,9 +54,10 @@ template engine. However seamless integration requires a non-trivial amount of
 code. For example `half a dozen libraries`_ compete for providing integration
 between Django and Jinja2.
 
-Therefore, this DEP proposes to define a formal API for integrating template
-engines and to provide built-in support for two of them: `template strings`_
-and Jinja2_.
+Therefore, this DEP proposes:
+
+1. to define a formal API for integrating third-party template engines
+2. to provide built-in support for  `template strings`_ and Jinja2_
 
 
 Design decisions
@@ -69,7 +70,7 @@ The operation of a template engine can be split in three steps:
 
 1. Configure: set options that will affect the following two steps
 2. Load: find the template for a given identifier and preprocess it
-3. Render: process a template with a context and return a string
+3. Render: process the template with a context and return a string
 
 When this document discusses configuring, loading or rendering, it refers to
 these steps or to their implementation.
@@ -79,16 +80,17 @@ General principles
 
 The Django Template Language hasn't evolved much over the years. It carries
 several design decisions made in 2005. Nine years later, if the Django team
-started from a clean slate, it may make different decisions.
+started from a clean slate, it would make different decisions.
 
-As a consequence, this project avoids encoding the legacy of the Django
-Template Language in APIs. It doesn't encourage third-party engines to provide
-compatibility with specific features of Django templates.
+Therefore this project avoids encoding the legacy of the DTL in APIs. It
+doesn't encourage third-party engines to provide compatibility with the DTL.
+Instead it focuses on integration with other components of Django.
 
-The main exception is security. This DEP is prescriptive when it comes to
-security considerations:
+Maintainers of third-party engines are welcome to make almost any design
+decision they want. The main exception is security. This DEP is prescriptive
+when it comes to security considerations:
 
-- HTML autoescaping is required by default, to defend against XSS attacks
+- HTML autoescaping is required by default to defend against XSS attacks
 - integration with Django's CSRF protection framework is mandatory
 
 Built-in engines
@@ -118,13 +120,13 @@ Engine selection
 ----------------
 
 Developers must be able to select the most appropriate engine for each page
-e.g. use Jinja2 only for a few performance-intensive pages. This provides a
-better migration story for converting a website from one engine to another
-too. That's why Django has to support several template engines in the same
+e.g. use Jinja2 only for a few performance-intensive pages. Also this provides
+a better migration story for converting a website from one engine to another.
+That's why Django must support several template engines within the same
 project.
 
 If several template engines are configured, when tasked with rendering a given
-template, Django must choose one. There are at least four ways to do this.
+template, Django must choose one. There are at least four ways to do this:
 
 1. Explicitly selecting an engine, for example:
 
@@ -148,7 +150,7 @@ template, Django must choose one. There are at least four ways to do this.
    then the engine would locate the template again, load it and render it.
    That would restrict engines to selection mechanisms that Django implements.
    That would also introduce an unhealthy amount of duplication and possibly
-   some bugs.
+   some inconsistencies.
 
 3. Convention: the file extension would define which engine to use. That's a
    pragmatic solution. Ruby on Rails would likely take this route.
@@ -159,8 +161,8 @@ template, Django must choose one. There are at least four ways to do this.
    expression against which template names are tested.
 
    If extensions are configurable, there's a risk that pluggable apps will end
-   up with incompatible requirements. For example, if app A wants .html files
-   to be rendered with the DTL and app B wants them to be rendered with
+   up with incompatible requirements. For example, if app A wants ``.html``
+   files to be rendered with the DTL and app B wants them to be rendered with
    Jinja2, it becomes impossible to use both apps in the same project. A
    configuration mechanism that handles such cases would be too complex.
 
@@ -184,13 +186,13 @@ template, Django must choose one. There are at least four ways to do this.
    its own subdirectory within installed applications to load templates from.
    This should simply be the engine's name e.g. ``/jinja2/`` for Jinja2. In
    order to preserve backwards-compatibility, it would remain ``/templates/``
-   for Django templates. This convention has a lower impact on users because
-   editors don't care about directory names the same way they do about file
+   for the DTL. This convention has a lower impact on users because editors
+   don't care about directory names the same way they do about file
    extensions.
 
    The intent of this design is that only one engine will find a template with
    a given identifier and that the order of template engines won't matter.
-   That said, nothing prevents users from relying on the order of template
+   However nothing prevents users from relying on the order of template
    engines to implement fallback schemes.
 
 Option 4 appears to provide the best compromise. It isn't perfect but it beats
@@ -226,9 +228,9 @@ an example:
     }
 
 The structure is modeled after ``DATABASES`` and ``CACHES``, although there's
-a fairly important difference. Since the algorithm described above will allow
-Django to select a template engine automatically, key names won't matter much
-in general. However the order may matter; in that case the setting should be a
+a fairly important difference. Since the algorithm described above allows
+Django to select a template engine automatically, key names don't matter much
+in general. If the order matters then ``TEMPLATES`` should be a
 ``collections.OrderedDict``.
 
 Since most engines load templates from files, the top-level configuration
@@ -241,10 +243,9 @@ contains two normalized settings:
 ``APP_DIRS`` is a boolean rather than the name of the subdirectory because
 that name is a property of the template engine, not a property of the project.
 It must be shared by all applications for interoperability of pluggable apps.
-Each engine will define a conventional name.
 
 Engine-specific settings go inside an ``OPTIONS`` dictionary. The intent is
-that they should be passed as keyword arguments when initializing the template
+that they will be passed as keyword arguments when initializing the template
 engine.
 
 Loading
@@ -260,8 +261,11 @@ the ``TEMPLATE_DIRS`` setting and from the ``'templates'`` subdirectories
 inside installed applications. The latter allows pluggable applications to
 ship templates.
 
-These basic features should be provided by all template engines. Template
-engines may provide other options such as loading templates from Python eggs.
+These basic features must be provided by all template engines according to the
+values of ``DIRS`` and ``APP_DIRS``. Each engine must define a conventional
+name for the subdirectory containing its templates inside installed
+applications. At their discretion, engines may provide other options such as
+loading templates from Python eggs or from a database.
 
 Rendering
 ---------
@@ -276,17 +280,18 @@ Autoescaping is disabled by default in Jinja2, leaving it up the developer to
 define which variables need escaping and favoring performance over security.
 The Django adapter will reverse this default.
 
-If an object provides an ``__html__`` method, the engine should assume that it
-can be used to get a safe HTML representation of the object. The result is
-guaranteed to be conventible into a ``str`` on Python 3 and a ``unicode`` on
-Python 2 but it may be a subclass.
+If an object provides an ``__html__`` method, template engines should assume
+that it can be used to get a safe HTML representation of the object. The
+result is guaranteed to be convertible into a ``str`` on Python 3 and a
+``unicode`` on Python 2 but it may be a subclass. This convention provides
+interoperability between ``django.utils.safestring`` and templates engines.
 
 Furthermore, when a template is rendered with a reference to the current
 ``request``, templates engines must make the CSRF token available in the
 context, ideally with an equivalent of Django's ``{% csrf_token %}`` tag.
 
 This makes it less likely that developers encounter problems with the CSRF
-protection framework and choose te simply disable it.
+protection framework and choose to simply disable it.
 
 Internationalization
 --------------------
@@ -308,7 +313,7 @@ appendix for details:
 * Any file that isn't a Python module is assumed to be written in the DTL
 * Extraction algorithms are hardcoded in ``django.utils.translation``
 
-Ideally each template engine should provide a list of template files it can
+Ideally each template engine will provide a list of template files it can
 handle and implement a suitable extraction process for translatable strings.
 However this raises several questions.
 
@@ -338,7 +343,7 @@ Management commands
 The ``startapp`` and ``startproject`` management commands won't support
 alternative template engines for now. While it would be feasible to add a
 ``--backend/-b`` option, it would only support built-in backends, because
-these commands runs without configured settings, making the feature less
+these commands runs without configured settings. That makes the feature less
 attractive.
 
 
@@ -348,8 +353,8 @@ Implementation plan
 Backends API
 ------------
 
-The entry point for a template engine is the class designated by ``'BACKEND'``
-in its configuration.
+The entry point for a template engine is the class designated by the
+``'BACKEND'`` entry in its configuration.
 
 This class must inherit ``django.templates.backends.BaseEngine`` or implement
 the following interface.
@@ -471,15 +476,16 @@ Template objects returned by backends must conform to the following interface.
                 context['csrf_token'] = format_html(
                     '<input type="hidden" name="csrfmiddlewaretoken" '
                     'value="{}" />', get_token(request))
-                # Passing the request is optional. Since Django doesn't have a
+                # Passing the request is optional but as Django doesn't have a
                 # global request object, it's useful to put it in the context.
                 context['request'] = request
 
             raise NotImplementedError(
                 'subclasses of BaseTemplate must provide a render() method')
 
-``Engine`` and ``Template`` classes in adapters should wrap the underlying
-engine rather than inherit it.
+``Engine`` and ``Template`` classes in adapters should wrap corresponding
+classes from the underlying libraries rather than inherit them in order to
+minimize the risk of name clashes.
 
 Django backend
 --------------
@@ -489,8 +495,8 @@ Refactoring
 
 The Django Template Language will be refactored into a standalone library.
 
-It will encapsulate its runtime configuration into an instance of
-``DjangoTemplates``.
+It will encapsulate its runtime configuration into an instance of a
+``DjangoTemplates`` class.
 
 Context processors will be moved from ``django.core.context_processors`` to
 ``django.template.context_processors`` with a deprecation period. Since users
@@ -513,11 +519,11 @@ Here's the default configuration for a Django backend:
                 'ALLOWED_INCLUDE_ROOTS': [],
                 'CONTEXT_PROCESSORS': [
                     'django.contrib.auth.context_processors.auth',
-                    'django.core.context_processors.debug',
-                    'django.core.context_processors.i18n',
-                    'django.core.context_processors.media',
-                    'django.core.context_processors.static',
-                    'django.core.context_processors.tz',
+                    'django.template.context_processors.debug',
+                    'django.template.context_processors.i18n',
+                    'django.template.context_processors.media',
+                    'django.template.context_processors.static',
+                    'django.template.context_processors.tz',
                     'django.contrib.messages.context_processors.messages',
                 ],
                 'LOADERS': None,
@@ -536,8 +542,9 @@ When the ``'LOADERS'`` option is set, Django:
 - accounts for ``DIRS`` if and only if the ``filesystem`` loader is included
 - ignores ``APP_DIRS``
 
-If ``TEMPLATES`` isn't defined at all, Django will automatically build a
-backwards compatible version as follows:
+If ``TEMPLATES`` isn't defined at all, for the duration of a deprecation
+period, Django will automatically build a backwards compatible version as
+follows:
 
 .. code:: python
 
@@ -602,6 +609,7 @@ The default loader is configured as follows:
 
     from jinja2 import ChoiceLoader, FileSystemLoader, PackageLoader
 
+
     def get_default_loader(engine):
         """Build default template loader for a Jinja2 template backend."""
 
@@ -628,7 +636,8 @@ the global namespace:
     # <project_name>/jinja2.py
 
     from django.conf import settings
-    from django.contrib.staticfiles.templatetags.staticfiles import static
+    # Django should provide a public API for this purpose.
+    from django.contrib.staticfiles.storage import staticfiles_storage
     from django.core.urlresolvers import reverse
     from django.template.backends.jinja2 import get_default_loader
 
@@ -644,14 +653,16 @@ the global namespace:
 
     env.globals.update({
         'reverse': reverse,
-        'static': static,
+        'static': staticfiles_storage.url,
     })
 
-The first solution is quite limited. There is no way to configure filters,
-tests, or global values. Its main purpose is to provide a configuration that
-works out of the box. For any non-trivial use, developers will have to switch
-to the second solution. It involves a bit of boilerplate but it's much better
-aligned with Jinja2's philosophy.
+The settings-based configuration is quite limited. It doesn't include any way
+to configure filters, tests, or global values. Its main purpose is to provide
+a configuration that works out of the box.
+
+For any non-trivial use, developers will have to switch to the code-based
+configuration. It involves a bit of boilerplate but it's much better aligned
+with Jinja2's philosophy.
 
 Dummy backend
 -------------
@@ -706,7 +717,7 @@ It also provides debatable "designer-friendly" error handling.
 Settings
 --------
 
-Currently, Django provides six settings to configure its template engine:
+Currently Django provides six settings to configure its template engine:
 
 * ``ALLOWED_INCLUDE_ROOTS`` is an artifact of the ``{% ssi %}`` tag which
   should be uncommon in modern Django projects.
@@ -766,7 +777,7 @@ Loaders are invoked through global APIs: ``get_template`` and
 Custom loaders are implemented by subclassing ``BaseLoader`` and overriding
 ``load_template_source``.
 
-The documentation describes how to return a non-Django template from a loader.
+The documentation describes how to return a non-DTL template from a loader.
 While this is a reasonable point to interface with a third-party template
 engine, the current API requires lots of glue code. That's why this proposal
 offers a more structured solution.
@@ -843,7 +854,7 @@ Template
 * ``Template(str)``
 * ``Template.render(context)``
 * ``Template.origin`` — when ``TEMPLATE_DEBUG`` is ``True``, it's either a
-  ``loader.LoaderOrigin`` or a ``StringOrigin``.
+  ``loader.LoaderOrigin`` or a ``StringOrigin``
 
 Context
 ~~~~~~~
@@ -895,7 +906,8 @@ Private APIs
 ------------
 
 The following APIs aren't documented but will have to be made public to allow
-for feature parity between Django templates and third-party template engines.
+for feature parity between the Django Template Language and third-party
+template engines.
 
 Debug
 ~~~~~
@@ -924,7 +936,7 @@ Various parts of Django depend on the public APIs of ``Template``,
 Contrib apps that provide views often import ``SimpleTemplateResponse`` or
 ``TemplateResponse``.
 
-Template tags and filters libraries in core and in contrib apps instaciate a
+Template tags and filters libraries in core and in contrib apps instantiate a
 ``Library``.
 
 Private APIs
@@ -988,7 +1000,7 @@ Currently the ``makemessages`` management command is implement as follows.
         * Otherwise, the file ignored.
 * The output of ``xgettext`` is appended to a ``.pot`` file in the target
   locale directory with minor adjustments.
-* Message catalogs ie. ``.po files`` for each language are updated according
+* Message catalogs ie. ``.po`` files for each language are updated according
   to the ``.pot`` file with ``msgmerge``.
 
 
@@ -1037,7 +1049,9 @@ or:
 
     html = render_to_string(NAME, CONTEXT)
 
-or::
+or:
+
+.. code:: python
 
     from django.template.loader import render_to_string
 
@@ -1145,7 +1159,7 @@ Django-Jinja
 ------------
 
 Django-Jinja replaces Django's template loaders with alternatives that handle
-both Jinja2 and Django templates.
+both Jinja2 and the DTL.
 
 It advertises wide compatibility with Django template filters and tags. The
 documentation doesn't talk about limitations, if any.
@@ -1168,13 +1182,13 @@ FAQ
 Why not simply switch to Jinja2?
 --------------------------------
 
-Since Django templates share some syntax with Jinja2, it's possible to write a
-trivial example that will work with both engines.
+Since the Django Template Language shares some syntax with Jinja2, it's
+possible to write a trivial example that will work with both engines.
 
-However, as shown above, Django templates provide several features that don't
-have a straightforward equivalent in Jinja2.
+However, as shown above, the DTL provide several features that don't have a
+straightforward equivalent in Jinja2.
 
-Porting a non-trivial application from Django templates to Jinja2 requires a
+Porting a non-trivial application from the DTL to Jinja2 requires a
 significant amount of work and cannot be automated.
 
 If you aren't convinced, try porting the ``django.contrib.admin`` templates —
@@ -1186,8 +1200,8 @@ Shouldn't Jinja2 be the default?
 In order to minimize disruption for developers, this project doesn't change
 the default engine. However it paves the way for doing so in a later release.
 
-Will the Django Template Langage be deprecated?
------------------------------------------------
+Will the Django Template Language be deprecated?
+------------------------------------------------
 
 No, there is no plan to deprecate it at this time.
 
@@ -1202,11 +1216,8 @@ As shown above, most Python templates engines support the following pattern:
     template = loader.load(NAME)
     html = template.render(**CONTEXT)
 
-This basic API serves as a common denominator for all engines. Then it's up to
-each engine to provide additional APIs, mainly as ``TemplateLoader`` options.
-
-This document describes other APIs but they aren't mandatory. If they don't
-make sense for a particular engine, they can be stubbed.
+This basic API serves as a common denominator for all engines. Then each
+engine may expose additional features through ``TemplateLoader`` options.
 
 Isn't this going to fragment the ecosystem of pluggable apps?
 -------------------------------------------------------------
@@ -1231,25 +1242,26 @@ Is it possible to use Django template filters or tags with other engines?
 
 This project doesn't aim at creating Django-flavored versions of various
 Python template engines. It aims at building a foundation upon which every
-developer can build the template engine they need if it doesn't exist yet.
+developer can create the template engine they need if it doesn't exist yet.
 
-This idea can be implemented but it belongs to a third-party module.
+In other words this idea can be implemented — and certainly will — but it
+belongs to a third-party module.
 
 What about template loaders and context processors?
 ---------------------------------------------------
 
-Likewise, these are specific features of the Django template engine. Other
-engines should provide their own APIs for loading templates and for adding
-common context to all templates.
+Likewise, these are specific features of the DTL. Other engines should provide
+their own APIs for loading templates and for adding common context to all
+templates.
 
-Can Django support my favorite frontend template engine?
---------------------------------------------------------
+Can Django support my favorite JavaScript template engine?
+----------------------------------------------------------
 
 Nice try ;-) This is out of scope for this project.
 
 
-Acknowledgements
-================
+Acknowledgments
+===============
 
 Thanks Loic Bistuer, Tim Graham, Jannis Leidel, Carl Meyer, Baptiste Mispelon,
 Daniele Procida and Josh Smeaton for commenting drafts of this document. Many
