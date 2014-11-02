@@ -411,6 +411,8 @@ the following interface.
             """
             Load and return a template for one of the given names.
 
+            Try names in order and return the first template found.
+
             Raise TemplateDoesNotExist if no such template exists.
             """
             for template_name in template_name_list:
@@ -1263,9 +1265,9 @@ Nice try ;-) This is out of scope for this project.
 Acknowledgments
 ===============
 
-Thanks Loic Bistuer, Tim Graham, Jannis Leidel, Carl Meyer, Baptiste Mispelon,
-Daniele Procida and Josh Smeaton for commenting drafts of this document. Many
-good ideas are theirs.
+Thanks Loic Bistuer, Tim Graham, Jannis Leidel, Carl Meyer, Michael Manfre,
+Baptiste Mispelon, Daniele Procida and Josh Smeaton for commenting drafts of
+this document. Many good ideas are theirs.
 
 
 Copyright
