@@ -686,6 +686,67 @@ It doesn't accept any options. Its configuration looks as follows:
         },
     }
 
+Shortcuts
+---------
+
+The current public APIs are:
+
+* ``render(request, template_name[, dictionary, context_instance,
+  content_type, status, current_app, dirs])``
+* ``render_to_response(template_name[, dictionary, context_instance,
+  content_type, dirs])``
+
+The new public APIs are:
+
+* ``render(request, template_name[, context, content_type, status])``
+* ``render_to_response(template_name[, context, content_type, status])``
+
+``dictionary`` is renamed to ``context`` because it's a better name and
+because it's consistent with template responses. This is transparent when it's
+passed as a positional argument, which is the most common idiom. A deprecation
+path is provided for when it's passed as a keyword argument.
+
+``context_instance`` is deprecated but there's an easy upgrade path thanks to
+duck-typing. Passing a ``Context`` or a ``RequestContext`` in the ``context``
+argument will just work when the target template is rendered with the Django
+Template Language.
+
+``render_to_response`` gains a ``status`` argument for consistency with
+``render`` which gained it in 0fef92f6_.
+
+``current_app`` is used by the ``{% url %}`` tag for reversing namespaced
+URLs. Such coupling is embarrassing. It doesn't serve any other purpose. There
+are two alternatives to hardcoding this feature in the template rendering API:
+looking up ``current_app`` as an attribute of ``request`` or as a value in
+``context``. The former makes more sense because the current application is
+really a property of the request being handled and because ``current_app`` is
+only supported by ``RequestContext``. For these reasons the ``current_app``
+keyword argument of ``render`` is deprecated in favor of a ``current_app``
+attribute of ``request``.
+
+``dirs`` is new in Django 1.7 and deprecated without a replacement in Django
+1.8. Only the Django Template Language will support it in Django 1.8 and 1.9.
+It was added in 2f0566fa_ in order to fix `ticket #4278`_. Unfortunately that
+ticket was very old and no longer made sense once template loaders were
+introduced. Besides the current implementation doesn't even work: ``dirs``
+doesn't apply to extended or included templates.
+
+Template responses
+------------------
+
+The current public APIs are:
+
+* ``TemplateResponse(request, template[, context, content_type, status,
+  current_app, charset])``
+* ``SimpleTemplateResponse(template[, context, content_type, status,
+  charset])``
+
+``current_app`` is treated exactly like for ``render``.
+
+Public method ``resolve_context`` loses its purpose once ``Template.render``
+no longer requires a ``Context`` and is deprecated.
+
+
 Appendix: the Django Template Language
 ======================================
 
@@ -864,8 +925,6 @@ Context
 ~~~~~~~
 
 * ``Context([dict, current_app])``
-    * ``current_app`` is used by the ``{% url %}`` tag for reversing
-      namespaced URLs. (Such coupling is embarrassing.)
 * ``Context.__getitem__(key)``
 * ``Context.__setitem__(key, value)``
 * ``Context.__delitem__(key)``
@@ -1299,6 +1358,9 @@ CC0 1.0 Universal license`_.
 .. _Mako: http://docs.makotemplates.org/
 .. _44b9076b: https://github.com/django/django/commit/44b9076bbed3e629230d9b77a8765e4c906036d1
 .. _af64429b: https://github.com/django/django/commit/af64429b991471b7a441e133b5b7d29070984f24
+.. _0fef92f6: https://github.com/django/django/commit/0fef92f6f0d064cdce4e8722fd9fe27ed451bb9b
+.. _2f0566fa: https://github.com/django/django/commit/2f0566fa61e13277364e3aef338fa5c143f5a704
+.. _ticket #4278: https://code.djangoproject.com/ticket/4278
 .. _Topic guide: https://docs.djangoproject.com/en/1.7/topics/templates/
 .. _Reference: https://docs.djangoproject.com/en/1.7/ref/templates/api/
 .. _Built-in tags and filters: https://docs.djangoproject.com/en/1.7/ref/templates/builtins/
