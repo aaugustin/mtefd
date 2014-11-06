@@ -35,9 +35,10 @@ easier. Still, writing custom template tags can be hard. Often it results in
 messy code.
 
 Furthermore the DTL can be slow to render complex templates. While this isn't
-an issue for small-to-medium websites, large websites with complex pages may
-suffer from the cost of interpreting templates in Python. Attempts to optimize
-rendering performance  `have failed`_.
+an issue for many simple websites, complex pages may suffer from the cost of
+interpreting templates in Python. Poor performance has blocked efforts to
+introduce `template-based widget rendering`_, leaving Django forms stuck with
+concatenating hardcoded pieces of HTML in Python.
 
 PyPy improves rendering speed a lot. However, in 2014, PyPy isn't ready for
 being recommended as Django's default deployment platform. Its support for
@@ -45,9 +46,11 @@ Python 3 is still experimental. PyPy is still a second-class citizen of the
 Python ecosystem. For instance, well-known Linux distributions don't ship a
 WSGI server running on PyPy out of the box.
 
-For at least these two reasons, Django users are increasingly turning to
-alternate template engines. Jinja2 is the most popular choice thanks to its
-syntax inspired by the DTL and its excellent performance.
+Finally, attempts to optimize rendering performance `have failed`_.
+
+For at least these two reasons, convenience and performance, Django users are
+increasingly turning to alternate template engines. Jinja2 is the most popular
+choice thanks to its syntax inspired by the DTL and its excellent performance.
 
 Given Django's `loose coupling`_ philosophy, it is relatively easy to swap the
 template engine. However seamless integration requires a non-trivial amount of
@@ -90,8 +93,8 @@ Maintainers of third-party engines are welcome to make almost any design
 decision they want. The main exception is security. This DEP is prescriptive
 when it comes to security considerations:
 
-- HTML autoescaping is required by default to defend against XSS attacks
-- integration with Django's CSRF protection framework is mandatory
+* HTML autoescaping is required by default to defend against XSS attacks
+* integration with Django's CSRF protection framework is mandatory
 
 Built-in engines
 ----------------
@@ -134,7 +137,10 @@ template, Django must choose one. There are at least four ways to do this:
 
        html = render_to_string('index.html', context, engine='jinja2')
 
-   Many APIs would work here, but all would add some boilerplate.
+   Not only does this add some inconvenient boilerplate, regardless of the API
+   that's chosen, but worse, each view requires a particular template engine.
+   A developer integrating a third-party application finds themselves unable
+   to replace built-in templates with templates written for another engine.
 
 2. Explicitly tagging templates, for example:
 
@@ -142,15 +148,12 @@ template, Django must choose one. There are at least four ways to do this:
 
        {# language: jinja2 #}
 
-   This would work like charset declaration in Python modules. It's marginally
-   less ugly than option 1.
-
-   Unfortunately, due to the way template engines are implemented, Django
-   would have to locate the template, figure out which engine it uses, and
-   then the engine would locate the template again, load it and render it.
-   That would restrict engines to selection mechanisms that Django implements.
-   That would also introduce an unhealthy amount of duplication and possibly
-   some inconsistencies.
+   This works like charset declaration in Python modules. Unfortunately, due
+   to the way template engines are implemented, Django would have to locate
+   the template, figure out which engine it uses, and then the engine would
+   locate the template again, load it and render it. That would restrict
+   engines to selection mechanisms that Django implements and introduce an
+   unhealthy amount of duplication as well as a risk of inconsistencies.
 
 3. Convention: the file extension would define which engine to use. That's a
    pragmatic solution. Ruby on Rails would likely take this route.
@@ -190,18 +193,20 @@ template, Django must choose one. There are at least four ways to do this:
    don't care about directory names the same way they do about file
    extensions.
 
-   The intent of this design is that only one engine will find a template with
-   a given identifier and that the order of template engines won't matter.
-   However nothing prevents users from relying on the order of template
-   engines to implement fallback schemes.
+   In a project that is developed so that only one engine will find a template
+   with a given identifier, the order of template engines doesn't matter.
+   However it's also possible to rely on this order to implement fallback
+   schemes. For instance, if a pluggable application uses the DTL, a developer
+   can provide Jinja2 replacements for its templates by putting Jinja2 before
+   the DTL in the ``TEMPLATES`` setting described below.
 
 Option 4 appears to provide the best compromise. It isn't perfect but it beats
 the alternatives and it doesn't have any drawbacks for daily use. It creates a
 healthy separation between templates designed for each engine.
 
-In addition, option 1 should be provided because it lets users implement their
-own scheme if option 4 doesn't cater for their use case and it won't add much
-complexity to the implementation.
+In addition, option 1 will be provided because it gives developers low-level
+control for atypical use cases. They can implement their own scheme if option
+4 doesn't work for them. It won't add much complexity to the implementation.
 
 Configuring
 -----------
@@ -211,34 +216,37 @@ an example:
 
 .. code:: python
 
-    TEMPLATES = {
-        'django': {
+    import collections
+
+    TEMPLATES = collections.OrderedDict((
+        ('django', {
             'BACKEND': 'django.template.backends.django.DjangoTemplates',
             'DIRS': [],
             'APP_DIRS': True,
-        },
-        'jinja2': {
+        }),
+        ('jinja2', {
             'BACKEND': 'django.template.backends.jinja2.Jinja2',
             'DIRS': [os.path.join(BASE_DIR, 'jinja2')],
             'APP_DIRS': False,
             'OPTIONS': {
                 'extensions': ['jinja2.ext.loopcontrols'],
             },
-        },
-    }
+        }),
+    ))
 
 The structure is modeled after ``DATABASES`` and ``CACHES``, although there's
 a fairly important difference. Since the algorithm described above allows
 Django to select a template engine automatically, key names don't matter much
-in general. If the order matters then ``TEMPLATES`` should be a
-``collections.OrderedDict``.
+in general. They're only useful to select explicitly a template engine. If the
+order matters then ``TEMPLATES`` should be a ``collections.OrderedDict``.
 
 Since most engines load templates from files, the top-level configuration
 contains two normalized settings:
 
-- ``DIRS`` works like Django's current ``TEMPLATE_DIRS``
-- ``APP_DIRS`` tells whether the engine should try to load templates from
-  conventional subdirectories inside applications
+* ``DIRS`` works like Django's current ``TEMPLATE_DIRS``. It defaults to the
+  empty list (``[]``).
+* ``APP_DIRS`` tells whether the engine should try to load templates from
+  conventional subdirectories inside applications. It defaults to ``True``.
 
 ``APP_DIRS`` is a boolean rather than the name of the subdirectory because
 that name is a property of the template engine, not a property of the project.
@@ -261,11 +269,24 @@ the ``TEMPLATE_DIRS`` setting and from the ``'templates'`` subdirectories
 inside installed applications. The latter allows pluggable applications to
 ship templates.
 
-These basic features must be provided by all template engines according to the
-values of ``DIRS`` and ``APP_DIRS``. Each engine must define a conventional
-name for the subdirectory containing its templates inside installed
-applications. At their discretion, engines may provide other options such as
-loading templates from Python eggs or from a database.
+These basic features should be provided by all template engines according to
+the values of ``DIRS`` and ``APP_DIRS``. Each engine should define a
+conventional name for the subdirectory contaning its templates inside an
+installed application. Django searches templates first in directories listed
+in ``DIRS`` and then in installed applications if ``APP_DIRS`` is ``True``.
+
+If an engine can't support these features, it must raise an exception when
+it's configured with a non-empty ``DIRS`` or with an ``APP_DIRS`` set to
+``True``.
+
+At their discretion, engines may provide:
+
+* more flexibility for configuring the directories templates are loaded from
+  and their order of precedence
+* other options such as loading templates from Python eggs or from a database
+* performance optimizations like caching templates when they're first loaded
+
+Such engine-specific features are configured in ``OPTIONS``.
 
 Rendering
 ---------
@@ -273,8 +294,8 @@ Rendering
 Template engines must provide automatic HTML escaping to protect against XSS
 attacks. It must be enabled by default for two reasons:
 
-- security should be the default
-- that's Django's historical behavior
+* security should be the default
+* that's Django's historical behavior
 
 Autoescaping is disabled by default in Jinja2, leaving it up the developer to
 define which variables need escaping and favoring performance over security.
@@ -287,8 +308,9 @@ result is guaranteed to be convertible into a ``str`` on Python 3 and a
 interoperability between ``django.utils.safestring`` and templates engines.
 
 Furthermore, when a template is rendered with a reference to the current
-``request``, templates engines must make the CSRF token available in the
-context, ideally with an equivalent of Django's ``{% csrf_token %}`` tag.
+``request``, for instance by using the ``render`` shortcut, templates engines
+must make the CSRF token available in the context, ideally with an equivalent
+of Django's ``{% csrf_token %}`` tag.
 
 This makes it less likely that developers encounter problems with the CSRF
 protection framework and choose to simply disable it.
@@ -330,12 +352,10 @@ However this raises several questions.
   historical behavior of ``makemessages`` may help.
 
 An alternative would be to switch to Babel_ for extracting translatable
-strings. It would solve the problems described above at the cost of adding a
-dependency and requiring developers to write an appropriate configuration file
-for each project. In contrast ``makemessages`` can take advantage of the
-structure of Django projects to handle common use cases automatically. Since
-it isn't clear that the advantages outweigh the drawbacks and in order to
-minimize changes, this idea is rejected from the scope of this project.
+strings. It would solve the problems described above at the cost of adding an
+optional dependency. ``makemessages`` would become a wrapper around Babel and
+invoke it with an appropriate configuration. This option will be considered
+and may be chosen during the implementation phase.
 
 Management commands
 -------------------
@@ -356,7 +376,7 @@ Backends API
 The entry point for a template engine is the class designated by the
 ``'BACKEND'`` entry in its configuration.
 
-This class must inherit ``django.templates.backends.BaseEngine`` or implement
+This class must inherit ``django.template.backends.BaseEngine`` or implement
 the following interface.
 
 .. code:: python
@@ -468,6 +488,8 @@ Template objects returned by backends must conform to the following interface.
             """
             Render this template with a given context.
 
+            Context must be a dict.
+
             If request is provided, it must be a ``django.http.HttpRequest``.
             """
             # The comments below specify how to handle the request argument.
@@ -514,7 +536,7 @@ Here's the default configuration for a Django backend:
 
     TEMPLATES = {
         'django': {
-            'BACKEND': 'django.templates.backends.django.DjangoTemplates',
+            'BACKEND': 'django.template.backends.django.DjangoTemplates',
             'DIRS': [],
             'APP_DIRS': True,
             'OPTIONS': {
@@ -536,13 +558,14 @@ Here's the default configuration for a Django backend:
 
 When the ``'LOADERS'`` option isn't set, Django configures:
 
-- a ``filesystem`` loader configured with ``DIRS``
-- an ``app_directories`` loader if and only if ``APP_DIRS`` is ``True``
+* a ``filesystem`` loader configured with ``DIRS``
+* an ``app_directories`` loader if and only if ``APP_DIRS`` is ``True``
 
 When the ``'LOADERS'`` option is set, Django:
 
-- accounts for ``DIRS`` if and only if the ``filesystem`` loader is included
-- ignores ``APP_DIRS``
+* accounts for ``DIRS`` if and only if the ``filesystem`` loader is included
+* expects ``APP_DIRS`` to be ``False`` and raises an ``ImproperlyConfigured``
+  exception otherwise
 
 If ``TEMPLATES`` isn't defined at all, for the duration of a deprecation
 period, Django will automatically build a backwards compatible version as
@@ -552,7 +575,7 @@ follows:
 
     TEMPLATES = {
         'django': {
-            'BACKEND': 'django.templates.backend.django.DjangoTemplates',
+            'BACKEND': 'django.template.backend.django.DjangoTemplates',
             'DIRS': settings.TEMPLATE_DIRS,
             'OPTIONS': {
                 'ALLOWED_INCLUDE_ROOTS': settings.ALLOWED_INCLUDE_ROOTS,
@@ -589,13 +612,11 @@ As a reminder, here's what the configuration for a Jinja2 backend looks like:
         },
     }
 
-The most interesting option is called ``'env'``. It's a dotted Python path to
-a Jinja2 environment instance or a callable returning such an instance. It
-defaults to ``'jinja2.Environment'``.
-
-If ``'env'`` points to a callable, Django will invoke that callable and pass
-other options as keyword arguments. Furthermore, Django will use defaults that
-differ from Jinja2's for a few options if they aren't set explicitly:
+The main option is ``'environment'``. It's a dotted Python path to a callable
+returning a Jinja2 environment. It defaults to ``'jinja2.Environment'``.
+Django invokes that callable and passes other options as keyword arguments.
+Furthermore, Django uses defaults that differ from Jinja2's for a few options
+if they aren't set explicitly:
 
 * ``'autoescape'``: ``True``
 * ``'loader'``: a loader configured for ``DIRS`` and ``APP_DIRS``
@@ -624,12 +645,6 @@ The default loader is configured as follows:
 
         return loader
 
-If ``'env'`` points to an instance, Django uses it as the Jinja2 environment. No
-other options may be provided. Developers are encouraged to create a file
-called ``<project_name>/jinja2.py``, define their Jinja2 environment there,
-and set ``'env'`` to ``'<project_name>.jinja2.env'``. This will be the most
-convenient solution in general.
-
 Here's an example that uses the default settings and adds a few utilities to
 the global namespace:
 
@@ -637,34 +652,22 @@ the global namespace:
 
     # <project_name>/jinja2.py
 
-    from django.conf import settings
     # Django should provide a public API for this purpose.
     from django.contrib.staticfiles.storage import staticfiles_storage
     from django.core.urlresolvers import reverse
-    from django.template.backends.jinja2 import get_default_loader
 
     from jinja2 import Environment
 
+    def environment(**options):
+        env = Environment(**options)
+        env.globals.update({
+            'reverse': reverse,
+            'static': staticfiles_storage.url,
+        })
+        return env
 
-    env = Environment(
-        autoescape=True,
-        loader=get_default_loader('jinja2'),
-        auto_reload=settings.DEBUG,
-        undefined=DebugUndefined if settings.DEBUG else Undefined,
-    )
-
-    env.globals.update({
-        'reverse': reverse,
-        'static': staticfiles_storage.url,
-    })
-
-The settings-based configuration is quite limited. It doesn't include any way
-to configure filters, tests, or global values. Its main purpose is to provide
-a configuration that works out of the box.
-
-For any non-trivial use, developers will have to switch to the code-based
-configuration. It involves a bit of boilerplate but it's much better aligned
-with Jinja2's philosophy.
+The ``'environment'`` option would be set to
+``<project_name>.jinja2.environment``.
 
 Dummy backend
 -------------
@@ -677,12 +680,11 @@ It doesn't accept any options. Its configuration looks as follows:
 
     TEMPLATES = {
         'django': {
-            'BACKEND': 'django.templates.backend.dummy.TemplateStrings',
+            'BACKEND': 'django.template.backend.dummy.TemplateStrings',
             'DIRS': [],
             'APP_DIRS': True,
         },
     }
-
 
 Appendix: the Django Template Language
 ======================================
@@ -1235,9 +1237,10 @@ they're written for doesn't matter. The author must document which template
 engine it uses and the developer must ensure their project meets this
 requirement.
 
-Pluggable apps that provide template filters or tags should consider adding
-equivalent Python functions to their public APIs for interoperability with any
-template engine.
+Pluggable apps that provide DTL filters or tags are strongly encouraged to
+provide equivalent Python functions in their public APIs for interoperability
+with all template engines. The DTL filters or tags should be thin wrappers
+around the plain Python functions.
 
 Is it possible to use Django template filters or tags with other engines?
 -------------------------------------------------------------------------
@@ -1246,8 +1249,8 @@ This project doesn't aim at creating Django-flavored versions of various
 Python template engines. It aims at building a foundation upon which every
 developer can create the template engine they need if it doesn't exist yet.
 
-In other words this idea can be implemented — and certainly will — but it
-belongs to a third-party module.
+In other words this idea may be implemented but it belongs to a third-party
+module.
 
 What about template loaders and context processors?
 ---------------------------------------------------
@@ -1265,9 +1268,9 @@ Nice try ;-) This is out of scope for this project.
 Acknowledgments
 ===============
 
-Thanks Loic Bistuer, Tim Graham, Jannis Leidel, Carl Meyer, Michael Manfre,
-Baptiste Mispelon, Daniele Procida and Josh Smeaton for commenting drafts of
-this document. Many good ideas are theirs.
+Thanks Collin Anderson, Loic Bistuer, Tim Graham, Jannis Leidel, Carl Meyer,
+Michael Manfre, Baptiste Mispelon, Daniele Procida, Josh Smeaton, and Marc
+Tamlyn for commenting drafts of this document. Many good ideas are theirs.
 
 
 Copyright
@@ -1283,6 +1286,7 @@ CC0 1.0 Universal license`_.
 .. _simple_tag: https://docs.djangoproject.com/en/1.7/howto/custom-template-tags/#simple-tags
 .. _inclusion_tag: https://docs.djangoproject.com/en/1.7/howto/custom-template-tags/#inclusion-tags
 .. _assignment_tag: https://docs.djangoproject.com/en/1.7/howto/custom-template-tags/#assignment-tags
+.. _template-based widget rendering: https://code.djangoproject.com/ticket/15667
 .. _loose coupling: https://docs.djangoproject.com/en/1.7/misc/design-philosophies/#loose-coupling
 .. _half a dozen libraries: https://www.djangopackages.com/grids/g/jinja2-template-loaders/
 .. _template strings: https://docs.python.org/3/library/string.html#template-strings
