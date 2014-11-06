@@ -212,36 +212,42 @@ Configuring
 -----------
 
 Template engines are configured in a new setting called ``TEMPLATES``. Here's
-an example:
+an example showcasing all possibilities:
 
 .. code:: python
 
-    import collections
-
-    TEMPLATES = collections.OrderedDict((
-        ('django', {
+    TEMPLATES = [
+        {
             'BACKEND': 'django.template.backends.django.DjangoTemplates',
-            'DIRS': [],
-            'APP_DIRS': True,
-        }),
-        ('jinja2', {
+        },
+        {
             'BACKEND': 'django.template.backends.jinja2.Jinja2',
             'DIRS': [os.path.join(BASE_DIR, 'jinja2')],
             'APP_DIRS': False,
             'OPTIONS': {
                 'extensions': ['jinja2.ext.loopcontrols'],
             },
-        }),
-    ))
+        },
+        {
+            'BACKEND': 'django.template.backends.django.DjangoTemplates',
+            'NAME': 'fallback',
+            'DIRS': [os.path.join(BASE_DIR, 'fallback_templates')],
+            'APP_DIRS': False,
+        },
+    ]
 
-The structure is modeled after ``DATABASES`` and ``CACHES``, although there's
-a fairly important difference. Since the algorithm described above allows
-Django to select a template engine automatically, key names don't matter much
-in general. They're only useful to select explicitly a template engine. If the
-order matters then ``TEMPLATES`` should be a ``collections.OrderedDict``.
+The structure bears some similarity with ``DATABASES`` and ``CACHES`` but it's
+a list rather than a dict because the order matters in some cases.
 
-Since most engines load templates from files, the top-level configuration
-contains two normalized settings:
+``BACKEND`` is a dotted Python path to a template engine class implementing
+Django's template backend API as specified below.
+
+``NAME`` must be unique across configured template engines. It's an identifier
+that allows selecting an engine for rendering. It defaults to the name of the
+module defining the engine class i.e. the penultimate piece of ``BACKEND``.
+
+Since most engines load templates from files, the top-level configuration for
+each engine contains two normalized settings:
 
 * ``DIRS`` works like Django's current ``TEMPLATE_DIRS``. It defaults to the
   empty list (``[]``).
@@ -530,13 +536,14 @@ this historical anomaly.
 Settings
 ~~~~~~~~
 
-Here's the default configuration for a Django backend:
+Here's the default configuration for the Django backend:
 
 .. code:: python
 
-    TEMPLATES = {
-        'django': {
+    TEMPLATES = [
+        {
             'BACKEND': 'django.template.backends.django.DjangoTemplates',
+            'NAME': 'django',
             'DIRS': [],
             'APP_DIRS': True,
             'OPTIONS': {
@@ -554,7 +561,7 @@ Here's the default configuration for a Django backend:
                 'STRING_IF_INVALID': '',
             },
         },
-    }
+    ]
 
 When the ``'LOADERS'`` option isn't set, Django configures:
 
@@ -573,8 +580,8 @@ follows:
 
 .. code:: python
 
-    TEMPLATES = {
-        'django': {
+    TEMPLATES = [
+        {
             'BACKEND': 'django.template.backend.django.DjangoTemplates',
             'DIRS': settings.TEMPLATE_DIRS,
             'OPTIONS': {
@@ -584,7 +591,7 @@ follows:
                 'STRING_IF_INVALID': settings.TEMPLATE_STRING_IF_INVALID,
             },
         },
-    }
+    ]
 
 Jinja2 backend
 --------------
@@ -597,20 +604,21 @@ Jinja2 will become an optional dependency of Django.
 Settings
 ~~~~~~~~
 
-As a reminder, here's what the configuration for a Jinja2 backend looks like:
+Here's the default configuration for the Jinja2 backend:
 
 .. code:: python
 
-    TEMPLATES = {
-        'jinja2': {
+    TEMPLATES = [
+        {
             'BACKEND': 'django.template.backends.jinja2.Jinja2',
+            'NAME': 'jinja2'
             'DIRS': [],
             'APP_DIRS': True,
             'OPTIONS': {
-                # ...
+                'environment': 'jinja2.Environment',
             },
         },
-    }
+    ]
 
 The main option is ``'environment'``. It's a dotted Python path to a callable
 returning a Jinja2 environment. It defaults to ``'jinja2.Environment'``.
@@ -628,17 +636,16 @@ The default loader is configured as follows:
 .. code:: python
 
     from django.apps import apps
-    from django.conf import settings
 
     from jinja2 import ChoiceLoader, FileSystemLoader, PackageLoader
 
 
-    def get_default_loader(engine):
+    def get_default_loader(engine, dirs, app_dirs):
         """Build default template loader for a Jinja2 template backend."""
 
-        loader = FileSystemLoader(settings.TEMPLATES[engine]['DIRS'])
+        loader = FileSystemLoader(dirs)
 
-        if settings.TEMPLATES[engine]['APP_DIRS']:
+        if app_dirs:
             app_loaders = [PackageLoader(app_config.name, 'jinja2')
                            for app_config in apps.get_app_configs()]
             loader = ChoiceLoader(loader, **app_loaders)
@@ -678,13 +685,14 @@ It doesn't accept any options. Its configuration looks as follows:
 
 .. code:: python
 
-    TEMPLATES = {
-        'django': {
+    TEMPLATES = [
+        {
             'BACKEND': 'django.template.backend.dummy.TemplateStrings',
+            'NAME': 'dummy',
             'DIRS': [],
             'APP_DIRS': True,
         },
-    }
+    ]
 
 Shortcuts
 ---------
