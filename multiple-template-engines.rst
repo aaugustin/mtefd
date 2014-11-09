@@ -219,11 +219,11 @@ an example showcasing all possibilities:
     TEMPLATES = [
         {
             'BACKEND': 'django.template.backends.django.DjangoTemplates',
+            'APP_DIRS': True,
         },
         {
             'BACKEND': 'django.template.backends.jinja2.Jinja2',
             'DIRS': [os.path.join(BASE_DIR, 'jinja2')],
-            'APP_DIRS': False,
             'OPTIONS': {
                 'extensions': ['jinja2.ext.loopcontrols'],
             },
@@ -232,7 +232,6 @@ an example showcasing all possibilities:
             'BACKEND': 'django.template.backends.django.DjangoTemplates',
             'NAME': 'fallback',
             'DIRS': [os.path.join(BASE_DIR, 'fallback_templates')],
-            'APP_DIRS': False,
         },
     ]
 
@@ -252,7 +251,7 @@ each engine contains two normalized settings:
 * ``DIRS`` works like Django's current ``TEMPLATE_DIRS``. It defaults to the
   empty list (``[]``).
 * ``APP_DIRS`` tells whether the engine should try to load templates from
-  conventional subdirectories inside applications. It defaults to ``True``.
+  conventional subdirectories inside applications. It defaults to ``False``.
 
 ``APP_DIRS`` is a boolean rather than the name of the subdirectory because
 that name is a property of the template engine, not a property of the project.
@@ -545,7 +544,7 @@ Here's the default configuration for the Django backend:
             'BACKEND': 'django.template.backends.django.DjangoTemplates',
             'NAME': 'django',
             'DIRS': [],
-            'APP_DIRS': True,
+            'APP_DIRS': False,
             'OPTIONS': {
                 'ALLOWED_INCLUDE_ROOTS': [],
                 'CONTEXT_PROCESSORS': [
@@ -613,7 +612,7 @@ Here's the default configuration for the Jinja2 backend:
             'BACKEND': 'django.template.backends.jinja2.Jinja2',
             'NAME': 'jinja2'
             'DIRS': [],
-            'APP_DIRS': True,
+            'APP_DIRS': False,
             'OPTIONS': {
                 'environment': 'jinja2.Environment',
             },
@@ -690,7 +689,7 @@ It doesn't accept any options. Its configuration looks as follows:
             'BACKEND': 'django.template.backend.dummy.TemplateStrings',
             'NAME': 'dummy',
             'DIRS': [],
-            'APP_DIRS': True,
+            'APP_DIRS': False,
         },
     ]
 
