@@ -547,15 +547,7 @@ Here's the default configuration for the Django backend:
             'APP_DIRS': False,
             'OPTIONS': {
                 'ALLOWED_INCLUDE_ROOTS': [],
-                'CONTEXT_PROCESSORS': [
-                    'django.contrib.auth.context_processors.auth',
-                    'django.template.context_processors.debug',
-                    'django.template.context_processors.i18n',
-                    'django.template.context_processors.media',
-                    'django.template.context_processors.static',
-                    'django.template.context_processors.tz',
-                    'django.contrib.messages.context_processors.messages',
-                ],
+                'CONTEXT_PROCESSORS': [],
                 'LOADERS': None,
                 'STRING_IF_INVALID': '',
             },
