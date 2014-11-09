@@ -310,10 +310,10 @@ If an object provides an ``__html__`` method, template engines should assume
 that it can be used to get a safe HTML representation of the object. The
 result is guaranteed to be convertible into a ``str`` on Python 3 and a
 ``unicode`` on Python 2 but it may be a subclass. This convention provides
-interoperability between ``django.utils.safestring`` and templates engines.
+interoperability between ``django.utils.safestring`` and template engines.
 
 Furthermore, when a template is rendered with a reference to the current
-``request``, for instance by using the ``render`` shortcut, templates engines
+``request``, for instance by using the ``render`` shortcut, template engines
 must make the CSRF token available in the context, ideally with an equivalent
 of Django's ``{% csrf_token %}`` tag.
 
@@ -1278,7 +1278,7 @@ No, there is no plan to deprecate it at this time.
 How does this account for differences in APIs?
 ----------------------------------------------
 
-As shown above, most Python templates engines support the following pattern:
+As shown above, most Python template engines support the following pattern:
 
 .. code:: python
 
