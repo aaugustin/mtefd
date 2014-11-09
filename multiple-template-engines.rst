@@ -705,10 +705,10 @@ because it's consistent with template responses. This is transparent when it's
 passed as a positional argument, which is the most common idiom. A deprecation
 path is provided for when it's passed as a keyword argument.
 
-``context_instance`` is deprecated but there's an easy upgrade path thanks to
-duck-typing. Passing a ``Context`` or a ``RequestContext`` in the ``context``
-argument will just work when the target template is rendered with the Django
-Template Language.
+``context_instance`` is deprecated in favor of ``context``. A compatibility
+shim will allow passing a ``Context`` or a ``RequestContext`` in ``context``
+during the deprecation period when the target template is rendered with the
+Django Template Language.
 
 ``render_to_response`` gains a ``status`` argument for consistency with
 ``render`` which gained it in 0fef92f6_.
