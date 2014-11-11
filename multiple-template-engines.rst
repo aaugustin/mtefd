@@ -516,6 +516,8 @@ Template objects returned by backends must conform to the following interface.
 classes from the underlying libraries rather than inherit them in order to
 minimize the risk of name clashes.
 
+Template backends must be thread-safe.
+
 Django backend
 --------------
 
