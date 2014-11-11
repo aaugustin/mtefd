@@ -575,7 +575,7 @@ follows:
 
     TEMPLATES = [
         {
-            'BACKEND': 'django.template.backend.django.DjangoTemplates',
+            'BACKEND': 'django.template.backends.django.DjangoTemplates',
             'DIRS': settings.TEMPLATE_DIRS,
             'OPTIONS': {
                 'ALLOWED_INCLUDE_ROOTS': settings.ALLOWED_INCLUDE_ROOTS,
@@ -680,7 +680,7 @@ It doesn't accept any options. Its configuration looks as follows:
 
     TEMPLATES = [
         {
-            'BACKEND': 'django.template.backend.dummy.TemplateStrings',
+            'BACKEND': 'django.template.backends.dummy.TemplateStrings',
             'NAME': 'dummy',
             'DIRS': [],
             'APP_DIRS': False,
