@@ -257,9 +257,9 @@ each engine contains two normalized settings:
 that name is a property of the template engine, not a property of the project.
 It must be shared by all applications for interoperability of pluggable apps.
 
-Engine-specific settings go inside an ``OPTIONS`` dictionary. The intent is
-that they will be passed as keyword arguments when initializing the template
-engine.
+Engine-specific settings go inside an ``OPTIONS`` dictionary which defaults to
+``{}``. The intent is that they will be passed as keyword arguments when
+initializing the template engine.
 
 Loading
 -------
