@@ -388,27 +388,40 @@ the following interface.
 
     from django.core.exceptions import ImproperlyConfigured
     from django.template.base import TemplateDoesNotExist
-    # This variable is used as a convenience to keep the specification short.
-    from django.template.loaders.app_directories import app_template_dirs
+    # This utility isn't implemented in order to keep the specification short.
+    from .utils import get_app_template_dirs
 
 
     class BaseEngine(object):
 
         # Core methods.
 
-        def __init__(self, **options):
+        def __init__(self, params):
             """
             Initializes the template engine.
 
-            Receives the configuration options as keyword arguments.
+            Receives the configuration settings as a dict.
             """
-            self.dirs = tuple(options.pop('DIRS', ()))
-            if options.pop('APP_DIRS', False):
-                self.dirs += app_template_dirs
+            self.name = params.pop('NAME')
 
+            self.dirs = tuple(params.pop('DIRS'))
+            if params.pop('APP_DIRS'):
+                self.dirs += get_app_template_dirs(self.app_dirname)
+
+            options = params.pop('OPTIONS')
             if options:
                 raise ImproperlyConfigured(
-                    'Unknown options: {}'.format(', '.join(options)))
+                    "Unknown options: {}".format(", ".join(options)))
+
+            if params:
+                raise ImproperlyConfigured(
+                    "Unknown parameters: {}".format(", ".join(params)))
+
+        @property
+        def app_dirname(self):
+            raise ImproperlyConfigured(
+                "{} doesn't support loading templates from installed "
+                "applications.".format(self.__class__.__name__))
 
         def get_template(self, template_name):
             """
@@ -417,8 +430,8 @@ the following interface.
             Raise TemplateDoesNotExist if no such template exists.
             """
             raise NotImplementedError(
-                'subclasses of BaseEngine must provide '
-                'a get_template() method')
+                "subclasses of BaseEngine must provide "
+                "a get_template() method")
 
         def get_template_from_string(self, template_code):
             """
@@ -427,8 +440,8 @@ the following interface.
             This method is optional.
             """
             raise NotImplementedError(
-                'subclasses of BaseEngine should provide '
-                'a get_template_from_string() method')
+                "subclasses of BaseEngine should provide "
+                "a get_template_from_string() method")
 
         # Ancillary methods.
 
@@ -446,9 +459,9 @@ the following interface.
                 except TemplateDoesNotExist:
                     continue
             if template_name_list:
-                raise TemplateDoesNotExist(', '.join(template_name_list))
+                raise TemplateDoesNotExist(", ".join(template_name_list))
             else:
-                raise TemplateDoesNotExist('No template names provided')
+                raise TemplateDoesNotExist("No template names provided")
 
         # Internationalization methods (tentative).
 
@@ -476,8 +489,8 @@ the following interface.
             The target language is defined by xgettext_target_language.
             """
             raise NotImplementedError(
-                'subclasses of BaseEngine must provide '
-                'a prepare_for_xgettext() method')
+                "subclasses of BaseEngine must provide "
+                "a prepare_for_xgettext() method")
 
 Template objects returned by backends must conform to the following interface.
 
