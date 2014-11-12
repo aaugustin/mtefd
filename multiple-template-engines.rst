@@ -403,16 +403,8 @@ the following interface.
             Receives the configuration settings as a dict.
             """
             self.name = params.pop('NAME')
-
             self.dirs = tuple(params.pop('DIRS'))
-            if params.pop('APP_DIRS'):
-                self.dirs += get_app_template_dirs(self.app_dirname)
-
-            options = params.pop('OPTIONS')
-            if options:
-                raise ImproperlyConfigured(
-                    "Unknown options: {}".format(", ".join(options)))
-
+            self.app_dirs = bool(params.pop('APP_DIRS'))
             if params:
                 raise ImproperlyConfigured(
                     "Unknown parameters: {}".format(", ".join(params)))
@@ -422,6 +414,13 @@ the following interface.
             raise ImproperlyConfigured(
                 "{} doesn't support loading templates from installed "
                 "applications.".format(self.__class__.__name__))
+
+        @property
+        def template_dirs(self):
+            template_dirs = self.dirs
+            if self.app_dirs:
+                template_dirs += get_app_template_dirs(self.app_dirname)
+            return template_dirs
 
         def get_template(self, template_name):
             """
