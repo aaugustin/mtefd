@@ -646,7 +646,7 @@ The default loader is configured as follows:
     from jinja2 import ChoiceLoader, FileSystemLoader, PackageLoader
 
 
-    def get_default_loader(engine, dirs, app_dirs):
+    def get_default_loader(dirs, app_dirs):
         """Build default template loader for a Jinja2 template backend."""
 
         loader = FileSystemLoader(dirs)
