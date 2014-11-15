@@ -721,8 +721,7 @@ path is provided for when it's passed as a keyword argument.
 
 ``context_instance`` is deprecated in favor of ``context``. A compatibility
 shim will allow passing a ``Context`` or a ``RequestContext`` in ``context``
-during the deprecation period when the target template is rendered with the
-Django Template Language.
+during the deprecation period.
 
 ``render_to_response`` gains a ``status`` argument for consistency with
 ``render`` which gained it in 0fef92f6_.
