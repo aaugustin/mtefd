@@ -70,6 +70,9 @@ class Updates(ArchiveIndexView):
     allow_empty = True
     date_field = 'date'
 
+    def get_allow_future(self):
+        return self.request.user.is_superuser and 'all' in self.request.GET
+
 
 class UpdatesFeed(Feed):
     title = "Multiple Template Engines for Django updates"
