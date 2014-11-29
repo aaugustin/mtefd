@@ -19,8 +19,10 @@ admin.site.register(Funder, FunderAdmin)
 
 class UpdateAdmin(admin.ModelAdmin):
     date_hierarchy = 'date'
-    list_display = ['title', 'date']
+    list_display = ['title', 'date', 'words']
     search_fields = ['title', 'body']
 
+    def words(self, obj):
+        return len(obj.body.split())
 
 admin.site.register(Update, UpdateAdmin)
