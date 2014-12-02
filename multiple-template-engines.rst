@@ -135,7 +135,7 @@ template, Django must choose one. There are at least four ways to do this:
 
    .. code:: python
 
-       html = render_to_string('index.html', context, engine='jinja2')
+       html = render_to_string('index.html', context, using='jinja2')
 
    Not only does this add some inconvenient boilerplate, regardless of the API
    that's chosen, but worse, each view requires a particular template engine.
