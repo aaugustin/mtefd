@@ -560,10 +560,10 @@ Here's the default configuration for the Django backend:
             'DIRS': [],
             'APP_DIRS': False,
             'OPTIONS': {
-                'ALLOWED_INCLUDE_ROOTS': [],
-                'CONTEXT_PROCESSORS': [],
-                'LOADERS': None,
-                'STRING_IF_INVALID': '',
+                'allowed_include_roots': [],
+                'context_processors': [],
+                'loaders': None,
+                'string_if_invalid': '',
             },
         },
     ]
@@ -590,10 +590,10 @@ follows:
             'BACKEND': 'django.template.backends.django.DjangoTemplates',
             'DIRS': settings.TEMPLATE_DIRS,
             'OPTIONS': {
-                'ALLOWED_INCLUDE_ROOTS': settings.ALLOWED_INCLUDE_ROOTS,
-                'CONTEXT_PROCESSORS': settings.TEMPLATE_CONTEXT_PROCESSORS,
-                'LOADERS': settings.TEMPLATE_LOADERS,
-                'STRING_IF_INVALID': settings.TEMPLATE_STRING_IF_INVALID,
+                'allowed_include_roots': settings.ALLOWED_INCLUDE_ROOTS,
+                'context_processors': settings.TEMPLATE_CONTEXT_PROCESSORS,
+                'loaders': settings.TEMPLATE_LOADERS,
+                'string_if_invalid': settings.TEMPLATE_STRING_IF_INVALID,
             },
         },
     ]
