@@ -711,8 +711,8 @@ The current public APIs are:
 
 The new public APIs are:
 
-* ``render(request, template_name[, context, content_type, status])``
-* ``render_to_response(template_name[, context, content_type, status])``
+* ``render(request, template_name[, context, using, content_type, status])``
+* ``render_to_response(template_name[, context, using, content_type, status])``
 
 ``dictionary`` is renamed to ``context`` because it's a better name and
 because it's consistent with template responses. This is transparent when it's
@@ -722,6 +722,8 @@ path is provided for when it's passed as a keyword argument.
 ``context_instance`` is deprecated in favor of ``context``. A compatibility
 shim will allow passing a ``Context`` or a ``RequestContext`` in ``context``
 during the deprecation period.
+
+``using`` provides a way to select a template engine explicitly.
 
 ``render_to_response`` gains a ``status`` argument for consistency with
 ``render`` which gained it in 0fef92f6_.
