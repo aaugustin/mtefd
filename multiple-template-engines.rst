@@ -112,8 +112,8 @@ This is akin to the local memory cache backend or, to a lesser extent, to the
 SQLite database backend.
 
 Support for Jinja2 is built-in because it appears to be the most widely used
-alternative. This DEP will be updated if evidence appears that another engine
-is more popular.
+alternative. No one asked for built-in support for another engine when this
+DEP was discussed.
 
 Support for other template engines is expected to be provided by third-party
 libraries. The reasons for doing so are exactly the same as for the cache and
@@ -368,7 +368,7 @@ Management commands
 The ``startapp`` and ``startproject`` management commands won't support
 alternative template engines for now. While it would be feasible to add a
 ``--backend/-b`` option, it would only support built-in backends, because
-these commands runs without configured settings. That makes the feature less
+these commands run without configured settings. That makes the feature less
 attractive.
 
 
@@ -387,14 +387,12 @@ the following interface.
 .. code:: python
 
     from django.core.exceptions import ImproperlyConfigured
-    from django.template.base import TemplateDoesNotExist
-    # This utility isn't implemented in order to keep the specification short.
-    from .utils import get_app_template_dirs
 
 
     class BaseEngine(object):
 
-        # Core methods.
+        # Core methods: engines have to provide their own implementation
+        #               (except for from_string which is optional).
 
         def __init__(self, params):
             """
@@ -402,8 +400,9 @@ the following interface.
 
             Receives the configuration settings as a dict.
             """
+            params = params.copy()
             self.name = params.pop('NAME')
-            self.dirs = tuple(params.pop('DIRS'))
+            self.dirs = list(params.pop('DIRS'))
             self.app_dirs = bool(params.pop('APP_DIRS'))
             if params:
                 raise ImproperlyConfigured(
@@ -415,52 +414,25 @@ the following interface.
                 "{} doesn't support loading templates from installed "
                 "applications.".format(self.__class__.__name__))
 
-        @property
-        def template_dirs(self):
-            template_dirs = self.dirs
-            if self.app_dirs:
-                template_dirs += get_app_template_dirs(self.app_dirname)
-            return template_dirs
-
-        def get_template(self, template_name):
+        def from_string(self, template_code):
             """
-            Load and return a template for the given name.
-
-            Raise TemplateDoesNotExist if no such template exists.
-            """
-            raise NotImplementedError(
-                "subclasses of BaseEngine must provide "
-                "a get_template() method")
-
-        def get_template_from_string(self, template_code):
-            """
-            Create and return a template for the given source code.
+            Creates and returns a template for the given source code.
 
             This method is optional.
             """
             raise NotImplementedError(
                 "subclasses of BaseEngine should provide "
-                "a get_template_from_string() method")
+                "a from_string() method")
 
-        # Ancillary methods.
-
-        def select_template(self, template_name_list):
+        def get_template(self, template_name):
             """
-            Load and return a template for one of the given names.
+            Loads and returns a template for the given name.
 
-            Try names in order and return the first template found.
-
-            Raise TemplateDoesNotExist if no such template exists.
+            Raises TemplateDoesNotExist if no such template exists.
             """
-            for template_name in template_name_list:
-                try:
-                    return self.get_template(template_name)
-                except TemplateDoesNotExist:
-                    continue
-            if template_name_list:
-                raise TemplateDoesNotExist(", ".join(template_name_list))
-            else:
-                raise TemplateDoesNotExist("No template names provided")
+            raise NotImplementedError(
+                "subclasses of BaseEngine must provide "
+                "a get_template() method")
 
         # Internationalization methods (tentative).
 
@@ -495,34 +467,31 @@ Template objects returned by backends must conform to the following interface.
 
 .. code:: python
 
-    from django.middleware.csrf import get_token
-    from django.utils.html import format_html
+    from django.template.backends.utils import csrf_input_lazy, csrf_token_lazy
 
 
     class BaseTemplate(object):
 
-        def render(self, context, request=None):
+        def render(self, context=None, request=None):
             """
             Render this template with a given context.
 
-            Context must be a dict.
+            If context is provided, it must be a dict.
 
             If request is provided, it must be a ``django.http.HttpRequest``.
             """
-            # The comments below specify how to handle the request argument.
+            if context is None:
+                context = {}
             if request is not None:
-                # Passing the CSRF token is mandatory but the implementation
-                # isn't enforced. Here's a very naive solution. For a more
-                # complete one, see django.template.defaulttags.CsrfTokenNode.
-                context['csrf_token'] = format_html(
-                    '<input type="hidden" name="csrfmiddlewaretoken" '
-                    'value="{}" />', get_token(request))
-                # Passing the request is optional but as Django doesn't have a
+                # Passing the CSRF token is mandatory. Helpers are available.
+                context['csrf_input'] = csrf_input_lazy(request)
+                context['csrf_token'] = csrf_token_lazy(request)
+                # Passing the request is optional. As Django doesn't have a
                 # global request object, it's useful to put it in the context.
                 context['request'] = request
 
             raise NotImplementedError(
-                'subclasses of BaseTemplate must provide a render() method')
+                "subclasses of BaseTemplate must provide a render() method")
 
 ``Engine`` and ``Template`` classes in adapters should wrap corresponding
 classes from the underlying libraries rather than inherit them in order to
@@ -635,27 +604,6 @@ if they aren't set explicitly:
 * ``'loader'``: a loader configured for ``DIRS`` and ``APP_DIRS``
 * ``'auto_reload'``: ``settings.DEBUG``
 * ``'undefined'``: ``DebugUndefined if settings.DEBUG else Undefined``
-
-The default loader is configured as follows:
-
-.. code:: python
-
-    from django.apps import apps
-
-    from jinja2 import ChoiceLoader, FileSystemLoader, PackageLoader
-
-
-    def get_default_loader(dirs, app_dirs):
-        """Build default template loader for a Jinja2 template backend."""
-
-        loader = FileSystemLoader(dirs)
-
-        if app_dirs:
-            app_loaders = [PackageLoader(app_config.name, 'jinja2')
-                           for app_config in apps.get_app_configs()]
-            loader = ChoiceLoader(loader, **app_loaders)
-
-        return loader
 
 Here's an example that uses the default settings and adds a few utilities to
 the global namespace:
