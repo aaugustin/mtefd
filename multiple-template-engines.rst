@@ -2,14 +2,19 @@
 Multiple Template Engines
 =========================
 
-========  ================
-Author    Aymeric Augustin
-Status    Draft
-Created   2014-09-14
-========  ================
+:DEP: 182
+:Type: Feature
+:Status: Accepted
+:Created: 2014-09-14
+:Last-Modified: 2014-12-28
+:Author: Aymeric Augustin
+:Implementation-Team: Aymeric Augustin
+:Shepherd: Carl Meyer
+:Django-Version: 1.8
+:Resolution: Accepted
 
 
-Overview
+Abstract
 ========
 
 Support some alternate template engines such as Jinja2_ out of the box.
@@ -21,8 +26,8 @@ Provide a stable API for integrating third-party template engines.
 Support multiple template engines within the same Django project.
 
 
-Rationale
-=========
+Motivation
+==========
 
 The Django Template Language (DTL) is `quite opinionated`_. It is purposefully
 designed to limit the amount of logic that can be embedded in templates. This
@@ -63,8 +68,8 @@ Therefore, this DEP proposes:
 2. to provide built-in support for  `template strings`_ and Jinja2_
 
 
-Design decisions
-================
+Rationale
+=========
 
 General architecture
 --------------------
@@ -372,8 +377,8 @@ these commands run without configured settings. That makes the feature less
 attractive.
 
 
-Implementation plan
-===================
+Specification
+=============
 
 Backends API
 ------------
@@ -707,6 +712,34 @@ The current public APIs are:
 
 Public method ``resolve_context`` loses its purpose once ``Template.render``
 no longer requires a ``Context`` and is deprecated.
+
+
+Backwards Compatibility
+=======================
+
+All backwards-incompatible changes to public APIs will go through a
+deprecation path according to Django's API stability policy. Notable changes
+include:
+
+- removing the ``TEMPLATE_*`` settings, except ``TEMPLATE_DEBUG``
+- moving ``context_processors`` from ``django.core`` to ``django.template``
+- turning ``current_app`` into an attribute of the ``request`` object
+- changing the signature of ``render``, ``render_to_response`` and
+  ``render_to_string``, although this won't affect the most common use case
+- removing the ``dirs`` argument of template-finding functions
+- moving the base class for template loaders
+
+Since this project involves a large amount of refactoring, many private APIs
+will change. In order to clarify the landscape, private APIs imported in the
+``django.template`` namespace will be removed. Only public APIs will be left.
+The author will make an effort to provide a deprecation path or document the
+removal of private APIs that are likely to be used in the wild.
+
+
+Reference Implementation
+========================
+
+In progress.
 
 
 Appendix: the Django Template Language
@@ -1323,6 +1356,7 @@ CC0 1.0 Universal license`_.
 .. _0fef92f6: https://github.com/django/django/commit/0fef92f6f0d064cdce4e8722fd9fe27ed451bb9b
 .. _2f0566fa: https://github.com/django/django/commit/2f0566fa61e13277364e3aef338fa5c143f5a704
 .. _ticket #4278: https://code.djangoproject.com/ticket/4278
+.. _932d449f: https://github.com/django/django/commit/932d449f001a94aa5065cda652a442e4b1dd5352
 .. _Topic guide: https://docs.djangoproject.com/en/1.7/topics/templates/
 .. _Reference: https://docs.djangoproject.com/en/1.7/ref/templates/api/
 .. _Built-in tags and filters: https://docs.djangoproject.com/en/1.7/ref/templates/builtins/
