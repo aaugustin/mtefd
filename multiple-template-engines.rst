@@ -443,14 +443,14 @@ implement the following interface.
 
         def extract_from_dir(dirname=None, **options):
             """
-            Extract messages from template files found in the given directory.
+            Extracts messages from template files found in the given directory.
             """
             # The default implementation will build upon the find_files and
             # prepare_for_xgettext methods defined below and xgettext itself.
 
         def find_files(self, dirname, followlinks=False):
             """
-            List template files found in the given directory.
+            Lists template files found in the given directory.
             """
             # The default implementation will walk directories pointed to by
             # DIRS and APP_DIRS if they're under dirname and return all files
@@ -460,7 +460,7 @@ implement the following interface.
 
         def prepare_for_xgettext(self, template_code, **options):
             """
-            Transform template code into something xgettext accepts as Python.
+            Transforms template code into something xgettext accepts as Python.
 
             The target language is defined by xgettext_target_language.
             """
@@ -479,7 +479,7 @@ Template objects returned by backends must conform to the following interface.
 
         def render(self, context=None, request=None):
             """
-            Render this template with a given context.
+            Renders this template with a given context.
 
             If context is provided, it must be a dict.
 
