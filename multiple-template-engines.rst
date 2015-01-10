@@ -386,8 +386,8 @@ Backends API
 The entry point for a template engine is the class designated by the
 ``'BACKEND'`` entry in its configuration.
 
-This class must inherit ``django.template.backends.BaseEngine`` or implement
-the following interface.
+This class must inherit ``django.template.backends.base.BaseEngine`` or
+implement the following interface.
 
 .. code:: python
 
